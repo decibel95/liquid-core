@@ -2,7 +2,7 @@
 
 Shared building blocks for the Liquid Climate and Liquid Home card sets for Home Assistant: the glass palettes and styles, design tokens, entity colour, line icons, the vertical slider, the focus ring, string layers, the sheet base, editor helpers, number helpers and a few small Home Assistant helpers.
 
-This is a development version (`0.1.0-dev.N`). The API below can still change before 0.1.0.
+Released on npm as `@decibel95/liquid-core` from 0.1.1 on (0.1.0 was tagged but never published to npm). While it is 0.x, a minor bump marks a visual change or an API break (see [CHANGELOG.md](CHANGELOG.md)).
 
 ## Rules
 

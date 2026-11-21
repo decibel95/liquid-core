@@ -5,9 +5,15 @@ All notable changes to liquid-core. The format follows [Keep a Changelog](https:
 While liquid-core is 0.x, a minor bump marks any visual change (a token value, a style, an icon path) or an API break, and a patch bump marks non-visual fixes only. Every visual change is listed under `### Changed` with the token name and the old and new value.
 
 <!-- #region entries -->
-## 0.1.0
+## 0.1.1
 
 The current version.
+
+### Changed
+- First version on npm. 0.1.0 was tagged but never published to npm, because npm only accepted a staged first version from the CI token. The code is unchanged from 0.1.0.
+- The publish workflow now stages each release on npm, and a maintainer approves it before it goes live.
+
+## 0.1.0
 
 ### Added
 - First release. The package is `@decibel95/liquid-core`: ESM only, compiled to `dist/` with `.d.ts`, `sideEffects: false`, `lit` 3.2.1 as an exact peer dependency. Its contents are the 0.1.0-dev.3 pack (everything below), unchanged except for the version.

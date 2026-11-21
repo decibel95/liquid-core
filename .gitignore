@@ -1,0 +1,12 @@
+node_modules
+dist
+*.tgz
+
+# Local, private (machine, secrets, agent config)
+.claude/
+CLAUDE.local.md
+.local/
+.omc/
+
+# Local core packs (npm pack output for consumers)
+.packs/

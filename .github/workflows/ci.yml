@@ -1,0 +1,37 @@
+name: CI
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 'lts/*'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Import every built module in Node
+        run: |
+          node --input-type=module -e "
+          import { readdirSync } from 'node:fs';
+          import { pathToFileURL } from 'node:url';
+          for (const f of readdirSync('dist').filter((f) => f.endsWith('.js'))) {
+            await import(pathToFileURL('dist/' + f).href);
+            console.log('imported dist/' + f);
+          }
+          "
+      - name: Check the package contents
+        run: npm pack --dry-run

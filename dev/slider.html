@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>liquid-core slider harness</title>
+    <!-- Same font as the gate 2 prototype, so the readout in the narrow card compares like for like. Dev only. -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap" />
+    <style>
+      /* Page grounds as the prototype and dev/media.html (CHO-14). Harness only, not shipped. */
+      body { margin: 0; padding: 24px 16px; font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; font-feature-settings: 'tnum' 1; }
+      body.dark { background: #0b0e14; color: #f4f6fa; }
+      body.light { background: #e7e9ee; color: #10141b; }
+      h1 { font-size: 15px; font-weight: 600; margin: 0 0 16px; }
+      section { margin-bottom: 32px; }
+      .cap { font-size: 12px; opacity: 0.7; margin: 0 0 8px; }
+      .row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+    </style>
+  </head>
+  <body>
+    <h1>liquid-core slider (V1 fill pill), Kitchen Lights rgb 255,64,112 at brightness 180</h1>
+    <section id="bare"><p class="cap">96 x 280 on the card glass</p></section>
+    <section id="narrow"><p class="cap">Inside a 320px narrow card</p></section>
+    <section id="states"><p class="cap">States: off, 1 %, unavailable, toggle on and off, White spectrum, min height 200</p><div class="row"></div></section>
+    <script type="module" src="./slider.ts"></script>
+  </body>
+</html>

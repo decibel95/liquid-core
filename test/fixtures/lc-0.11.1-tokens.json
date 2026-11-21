@@ -1,0 +1,205 @@
+{
+  "source": {
+    "project": "liquid-climate",
+    "version": "0.11.1",
+    "commit": "373b340"
+  },
+  "GLASS": {
+    "dark": {
+      "bg": "rgba(18,20,26,0.78)",
+      "fg": "#f4f6fa",
+      "fg2": "rgba(235,240,248,0.78)",
+      "fg3": "rgba(235,240,248,0.76)",
+      "bright": "#ffffff",
+      "track": "rgba(255,255,255,0.14)",
+      "tick": "rgba(255,255,255,0.28)",
+      "warn": "#ffb067"
+    },
+    "light": {
+      "bg": "rgba(248,249,252,0.72)",
+      "fg": "#10141b",
+      "fg2": "rgba(16,20,27,0.62)",
+      "fg3": "rgba(16,20,27,0.62)",
+      "bright": "#10141b",
+      "track": "rgba(16,20,27,0.16)",
+      "tick": "rgba(16,20,27,0.32)",
+      "warn": "#7c3a05"
+    }
+  },
+  "MENU_GLASS": {
+    "dark": {
+      "fg2": "rgba(235,240,248,0.94)",
+      "warn": "#ffc490",
+      "panel": "rgba(255,255,255,0.05)",
+      "head": "#f0f3f8",
+      "edge": "rgba(235,240,248,0.62)",
+      "onTrack": "#e9edf5",
+      "onThumb": "#10141b",
+      "offTrack": "rgba(255,255,255,0.08)",
+      "offThumb": "rgba(235,240,248,0.78)",
+      "hover": "rgba(255,255,255,0.07)",
+      "pill": "rgba(255,255,255,0.05)",
+      "pillOn": "rgba(255,255,255,0.1)"
+    },
+    "light": {
+      "fg2": "rgba(16,20,27,0.86)",
+      "warn": "#5c2a04",
+      "panel": "rgba(0,0,0,0.04)",
+      "head": "#161b23",
+      "edge": "rgba(16,20,27,0.62)",
+      "onTrack": "#10141b",
+      "onThumb": "#ffffff",
+      "offTrack": "rgba(0,0,0,0.06)",
+      "offThumb": "rgba(16,20,27,0.66)",
+      "hover": "rgba(0,0,0,0.06)",
+      "pill": "rgba(0,0,0,0.04)",
+      "pillOn": "rgba(0,0,0,0.08)"
+    }
+  },
+  "DOT_RING": {
+    "dark": "#15171d",
+    "light": "#f3f4f7"
+  },
+  "ROOM_FILL": {
+    "dark": {
+      "rest": "rgba(255,255,255,0.04)",
+      "on": "rgba(100,140,240,0.1)",
+      "edge": "rgba(255,255,255,0.07)",
+      "onEdge": "rgba(255,255,255,0.26)"
+    },
+    "light": {
+      "rest": "rgba(255,255,255,0.55)",
+      "on": "rgba(255,255,255,0.7)",
+      "edge": "rgba(16,20,27,0.08)",
+      "onEdge": "rgba(16,20,27,0.3)"
+    }
+  },
+  "palette": {
+    "off": "#9aa3b2",
+    "heat": "#ff9447",
+    "cool": "#5ab0ff",
+    "heat_cool": "#a99cff",
+    "auto": "#a99cff",
+    "dry": "#40d3c8",
+    "fan_only": "#d5dce6",
+    "neutral": "#d5dce6"
+  },
+  "STATUS_COLORS": {
+    "error": "#f87171",
+    "paused": "#facc15",
+    "off": "#6b7280"
+  },
+  "TINT": {
+    "tile": 0.24,
+    "tileEdge": 0.45,
+    "badge": 0.3
+  },
+  "LIGHT_TONES": {
+    "#facc15": "#b45309",
+    "#f87171": "#dc2626",
+    "#d5dce6": "#64748b"
+  },
+  "ICONS": {
+    "power": "M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04",
+    "flame": "M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z",
+    "snow": "M2 12h20 M12 2v20 M20 16l-4-4 4-4 M4 8l4 4-4 4 M16 4l-4 4-4-4 M8 20l4-4 4 4",
+    "auto": "M21 16l-4 4-4-4 M17 20V4 M3 8l4-4 4 4 M7 4v16",
+    "drop": "M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z",
+    "fan": "M10.827 16.379a6.082 6.082 0 0 1-8.618-7.002l5.412 1.45a6.082 6.082 0 0 1 7.002-8.618l-1.45 5.412a6.082 6.082 0 0 1 8.618 7.002l-5.412-1.45a6.082 6.082 0 0 1-7.002 8.618l1.45-5.412Z M12 12v.01",
+    "swingV": "M12 2v20 M8 18l4 4 4-4 M8 6l4-4 4 4",
+    "swingH": "M2 12h20 M18 8l4 4-4 4 M6 8l-4 4 4 4",
+    "boost": "M17 11l-5-5-5 5 M17 18l-5-5-5 5",
+    "away": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9",
+    "none": "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18z",
+    "door": "M13 4h3a2 2 0 0 1 2 2v14 M2 20h3 M13 20h9 M10 12v.01 M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4-1A2 2 0 0 1 13 4.561Z",
+    "alert": "M21.73 18l-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z M12 9v4 M12 17h.01",
+    "minus": "M5 12h14",
+    "plus": "M5 12h14 M12 5v14",
+    "close": "M6 6l12 12 M18 6L6 18",
+    "leaf": "M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12",
+    "zap": "M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z",
+    "gauge": "m12 14 4-4 M3.34 19a10 10 0 1 1 17.32 0",
+    "heatPump": "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8 M21 3v5h-5 M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16 M8 16H3v5",
+    "house": "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8 M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+    "moon": "M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z",
+    "sofa": "M20 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v3 M2 16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v1.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V11a2 2 0 0 0-4 0z M4 18v2 M20 18v2 M12 4v9",
+    "baby": "M9 12h.01 M15 12h.01 M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5 M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"
+  },
+  "focusRing": [
+    {
+      "file": "src/cards/badge/liquid-climate-badge.ts",
+      "outline": "2px solid var(--lc-bright)",
+      "offset": "2px"
+    },
+    {
+      "file": "src/cards/cluster/liquid-climate-cluster.ts",
+      "outline": "2px solid var(--lc-bright)",
+      "offset": "2px"
+    },
+    {
+      "file": "src/cards/dial/styles.ts",
+      "outline": "2px solid var(--lc-bright)",
+      "offset": "2px"
+    },
+    {
+      "file": "src/cards/dial/styles.ts",
+      "outline": "2px solid var(--lc-bright)",
+      "offset": "3px"
+    },
+    {
+      "file": "src/cards/shared/sheet.ts",
+      "outline": "2px solid var(--lc-bright)",
+      "offset": "2px"
+    },
+    {
+      "file": "src/cards/tile/liquid-climate-tile.ts",
+      "outline": "2px solid var(--lc-bright)",
+      "offset": "2px"
+    },
+    {
+      "file": "src/ui/menu.ts",
+      "outline": "2px solid var(--lc-bright)",
+      "offset": "-2px"
+    }
+  ],
+  "powerTint": 0.28,
+  "chevron": "M9 6l6 6-6 6",
+  "clusterIcons": [
+    {
+      "icon": "icon",
+      "size": 16,
+      "stroke": 2
+    },
+    {
+      "icon": "CHEVRON",
+      "size": 16,
+      "stroke": 2
+    },
+    {
+      "icon": "info.icon",
+      "size": 18,
+      "stroke": 1.9
+    },
+    {
+      "icon": "ICONS.minus",
+      "size": 18,
+      "stroke": 2
+    },
+    {
+      "icon": "ICONS.plus",
+      "size": 18,
+      "stroke": 2
+    }
+  ],
+  "themeVars": [
+    "--lc-blur",
+    "--lc-radius",
+    "--lc-tint"
+  ],
+  "chrome": {
+    "dial": "\n\n  :host {\n    display: block;\n    --lc-radius-default: 40px;\n  }\n\n  .lc {\n    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;\n    -webkit-font-smoothing: antialiased;\n    font-feature-settings: 'tnum' 1;\n    position: relative;\n    box-sizing: border-box;\n    max-width: 444px;\n    margin: 0 auto;\n    padding: 22px;\n    border-radius: var(--lc-radius, var(--lc-radius-default));\n    color: var(--lc-fg);\n    background: var(--lc-bg);\n    backdrop-filter: blur(var(--lc-blur, var(--_blur))) saturate(170%);\n    -webkit-backdrop-filter: blur(var(--lc-blur, var(--_blur))) saturate(170%);\n    border: 1px solid var(--lc-edge);\n    box-shadow:\n      inset 0 1px 0 var(--lc-shine),\n      var(--lc-drop, 0 40px 80px -24px rgba(0, 0, 0, 0.45));\n    display: flex;\n    flex-direction: column;\n    gap: 16px;\n    overflow: hidden;\n  }\n\n  .glow {\n    position: absolute;\n    inset: 0;\n    border-radius: inherit;\n    pointer-events: none;\n    opacity: 0;\n    transition: opacity 0.4s ease;\n    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), var(--lc-glow), transparent 40%);\n  }\n  .glow.on {\n    opacity: 1;\n  }\n  .m-minimal .glow {\n    display: none;\n  }\n\n  .tint {\n    position: absolute;\n    inset: 0;\n    border-radius: inherit;\n    pointer-events: none;\n    transition:\n      background-color 0.9s ease,\n      opacity 0.9s ease;\n  }\n\n  h2 {\n    margin: 0;\n    font-size: 20px;\n    font-weight: 600;\n    letter-spacing: -0.02em;\n  }\n\n  button {\n    font: inherit;\n    color: inherit;\n    cursor: pointer;\n    margin: 0;\n    border: 1px solid var(--lc-btn-edge);\n    background: var(--lc-btn);\n  }\n  button:focus-visible,\n  .dial:focus-visible {\n    outline: 2px solid var(--lc-bright);\n    outline-offset: 2px;\n  }\n  button:disabled {\n    cursor: default;\n  }\n  .press {\n    transition:\n      transform 0.28s cubic-bezier(0.3, 1.7, 0.5, 1),\n      background-color 0.5s ease,\n      border-color 0.5s ease;\n  }\n  .press:active:not(:disabled) {\n    transform: scale(0.93);\n  }\n\n  header {\n    position: relative;\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 12px;\n  }\n  header .titles {\n    display: flex;\n    flex-direction: column;\n    gap: 2px;\n    min-width: 0;\n  }\n  header .sub {\n    font-size: 13px;\n    color: var(--lc-fg2);\n    min-width: 0;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  header .actions {\n    display: flex;\n    align-items: center;\n    gap: 8px;\n    flex: none;\n  }\n  .power {\n    width: 44px;\n    height: 44px;\n    flex: none;\n    border-radius: 50%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    padding: 0;\n  }\n\n  .dial-wrap {\n    position: relative;\n    width: 100%;\n    max-width: 400px;\n    aspect-ratio: 1;\n    margin: 0 auto;\n    container-type: inline-size;\n  }\n  .parts {\n    position: absolute;\n    left: 23.75%;\n    top: 23.75%;\n    width: 52.5%;\n    height: 52.5%;\n    border-radius: 50%;\n    overflow: hidden;\n    -webkit-mask-image: radial-gradient(circle, #000 50%, transparent 70%);\n    mask-image: radial-gradient(circle, #000 50%, transparent 70%);\n    pointer-events: none;\n  }\n  .pt {\n    position: absolute;\n    border-radius: 50%;\n    opacity: 0;\n    animation-iteration-count: infinite;\n    animation-timing-function: ease-in-out;\n  }\n  .pt-off,\n  .pt-auto-none {\n    display: none;\n  }\n  .pt-heat,\n  .pt-heat_cool,\n  .pt-auto {\n    bottom: -8px;\n    animation-name: lcRise;\n  }\n  .pt-cool {\n    top: -8px;\n    animation-name: lcFall;\n  }\n  .pt-dry {\n    top: -8px;\n    animation-name: lcDrip;\n    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;\n  }\n  .pt-fan_only {\n    bottom: 40%;\n    animation-name: lcDrift;\n  }\n  @keyframes lcRise {\n    0% { transform: translateY(0) scale(0.5); opacity: 0; }\n    20% { opacity: 0.55; }\n    100% { transform: translate(10px, -230px) scale(1.1); opacity: 0; }\n  }\n  @keyframes lcFall {\n    0% { transform: translate(0, 0); opacity: 0; }\n    20% { opacity: 0.6; }\n    50% { transform: translate(8px, 110px); }\n    100% { transform: translate(-6px, 230px); opacity: 0; }\n  }\n  @keyframes lcDrip {\n    0% { transform: translateY(0) scaleY(0.8); opacity: 0; }\n    15% { opacity: 0.55; }\n    100% { transform: translateY(230px) scaleY(1.3); opacity: 0; }\n  }\n  @keyframes lcDrift {\n    0% { transform: translateX(-70px); opacity: 0; }\n    25% { opacity: 0.45; }\n    100% { transform: translateX(150px); opacity: 0; }\n  }\n\n  .dial {\n    position: absolute;\n    inset: 0;\n    width: 100%;\n    height: 100%;\n    touch-action: none;\n    cursor: grab;\n    border-radius: 50%;\n  }\n  .dial.nodrag {\n    cursor: default;\n  }\n  .spin {\n    transform-box: fill-box;\n    transform-origin: center;\n    animation: lcSpin linear infinite;\n  }\n  @keyframes lcSpin {\n    to { transform: rotate(360deg); }\n  }\n  .fan-label,\n  .tick-label {\n    position: absolute;\n    text-align: center;\n    pointer-events: none;\n    font-size: 10px;\n    transform: translate(-50%, -50%);\n  }\n  .fan-label {\n    font-weight: 600;\n    width: 20px;\n  }\n  .tick-label {\n    color: var(--lc-fg3);\n    width: 24px;\n  }\n  .fan-label,\n  .tick-label,\n  .center {\n    transition: opacity 0.3s;\n  }\n\n  .center {\n    position: absolute;\n    inset: 0;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    justify-content: center;\n    padding-bottom: 6cqw;\n    box-sizing: border-box;\n    pointer-events: none;\n  }\n  .big {\n    display: flex;\n    align-items: flex-start;\n    font-weight: 200;\n    letter-spacing: -0.04em;\n    line-height: 1;\n    font-size: 18cqw;\n    white-space: nowrap;\n  }\n  .big.dual {\n    font-size: 11.5cqw;\n    align-items: center;\n    gap: 1.5cqw;\n  }\n  .big .deg {\n    font-size: 7cqw;\n    font-weight: 300;\n    margin-top: 1.5cqw;\n    color: var(--lc-fg2);\n  }\n  .big.dual .deg {\n    font-size: 4.5cqw;\n    margin-top: 0;\n  }\n  .big .dash {\n    width: 3cqw;\n    height: 1px;\n    background: var(--lc-fg3);\n  }\n  .pop {\n    animation: lcPop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);\n  }\n  @keyframes lcPop {\n    0% { transform: scale(0.95); }\n    100% { transform: scale(1); }\n  }\n  .centersub > span:not(.progress) {\n    max-width: 100%;\n    min-width: 0;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .centersub {\n    position: relative;\n    margin-top: 10px;\n    height: 18px;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    justify-content: center;\n    font-size: 13px;\n    color: var(--lc-fg2);\n  }\n  .progress {\n    position: absolute;\n    left: 50%;\n    bottom: -8px;\n    width: 56px;\n    margin-left: -28px;\n    height: 2px;\n    border-radius: 1px;\n    background: var(--lc-track);\n    overflow: hidden;\n  }\n  .progress span {\n    display: block;\n    width: 100%;\n    height: 100%;\n    background: var(--lc-bright);\n    transform-origin: left;\n    animation: lcFill var(--delay, 1.5s) linear forwards;\n  }\n  @keyframes lcFill {\n    from { transform: scaleX(0); }\n    to { transform: scaleX(1); }\n  }\n\n  .steps {\n    position: absolute;\n    left: 0;\n    right: 0;\n    bottom: 2%;\n    display: flex;\n    justify-content: center;\n    gap: 19%;\n  }\n  .step {\n    width: 48px;\n    height: 48px;\n    border-radius: 50%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    padding: 0;\n  }\n  .step:disabled {\n    opacity: 0.3;\n  }\n\n  .modes {\n    position: relative;\n    display: grid;\n    gap: 6px;\n  }\n  .mode {\n    height: 60px;\n    border-radius: 18px;\n    padding: 0;\n    display: flex;\n    flex-direction: column;\n    align-items: center;\n    justify-content: center;\n    gap: 5px;\n    min-width: 0;\n  }\n  .mode span {\n    font-size: 11px;\n    font-weight: 500;\n    max-width: 100%;\n    min-width: 0;\n    padding: 0 2px;\n    box-sizing: border-box;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .chips {\n    position: relative;\n    display: grid;\n    gap: 6px;\n  }\n  .chip {\n    height: 52px;\n    border-radius: 16px;\n    padding: 0 12px;\n    display: flex;\n    align-items: center;\n    gap: 9px;\n    text-align: left;\n    min-width: 0;\n  }\n  .chip .txt {\n    display: flex;\n    flex-direction: column;\n    gap: 1px;\n    min-width: 0;\n  }\n  .chip .k {\n    font-size: 11px;\n    color: var(--lc-fg3);\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .chip .v {\n    font-size: 13px;\n    font-weight: 600;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n  }\n  .chip svg {\n    flex: none;\n    opacity: 0.85;\n  }\n  .osc {\n    animation: lcOsc 1.6s ease-in-out infinite;\n    transform-origin: center;\n  }\n  .osc-slow {\n    animation: lcOsc 3.4s ease-in-out infinite;\n    transform-origin: center;\n  }\n  @keyframes lcOsc {\n    0%, 100% { transform: rotate(-16deg); }\n    50% { transform: rotate(16deg); }\n  }\n  .climb {\n    animation: lcClimb 1.9s ease-in-out infinite;\n  }\n  @keyframes lcClimb {\n    0% { transform: translateY(3px); opacity: 0.4; }\n    50% { opacity: 1; }\n    100% { transform: translateY(-3px); opacity: 0.4; }\n  }\n\n  .info {\n    position: relative;\n    display: grid;\n    border-top: 1px solid var(--lc-line);\n    padding-top: 14px;\n  }\n  .info div {\n    display: flex;\n    flex-direction: column;\n    gap: 3px;\n    min-width: 0;\n  }\n  .info .v {\n    font-size: 18px;\n    font-weight: 400;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n  .info .v small {\n    font-size: 12px;\n    color: var(--lc-fg2);\n  }\n  .info .v.warn {\n    color: var(--lc-warn);\n  }\n  .info .l {\n    font-size: 11.5px;\n    color: var(--lc-fg3);\n    min-width: 0;\n    overflow: hidden;\n    text-overflow: ellipsis;\n    white-space: nowrap;\n  }\n\n  .alert {\n    position: relative;\n    border-radius: 14px;\n    background: rgba(248, 113, 113, 0.16);\n    border: 1px solid rgba(248, 113, 113, 0.45);\n    padding: 9px 12px;\n    font-size: 13px;\n  }\n\n  .alert.battery {\n    background: color-mix(in srgb, var(--lc-warn) 14%, transparent);\n    border: 1px solid color-mix(in srgb, var(--lc-warn) 45%, transparent);\n    color: var(--lc-warn);\n  }\n\n  .status {\n    position: relative;\n    display: flex;\n    flex-direction: column;\n    border-top: 1px solid var(--lc-line);\n  }\n  .status .row {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    gap: 12px;\n    width: 100%;\n    min-width: 0;\n    padding: 12px 0;\n    border: none;\n    border-bottom: 1px solid var(--lc-line2);\n    border-radius: 0;\n    background: none;\n    font: inherit;\n    font-size: 13px;\n    color: inherit;\n    text-align: left;\n    cursor: pointer;\n  }\n  .status .row:last-child {\n    border-bottom: none;\n    padding-bottom: 0;\n  }\n  .status .ric {\n    --mdc-icon-size: 16px;\n    width: 16px;\n    height: 16px;\n    flex: none;\n    opacity: 0.7;\n    margin-right: -4px;\n  }\n  .status .lbl {\n    flex: 1 1 auto;\n    min-width: 0;\n    color: var(--lc-fg2);\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n  }\n  .status .val {\n    flex: 0 1 auto;\n    max-width: 55%;\n    min-width: 0;\n    display: inline-flex;\n    align-items: center;\n    justify-content: flex-end;\n    gap: 6px;\n    font-weight: 500;\n  }\n  .status .vt {\n    min-width: 0;\n    white-space: nowrap;\n    overflow: hidden;\n    text-overflow: ellipsis;\n  }\n  .status .dot {\n    flex: none;\n    width: 6px;\n    height: 6px;\n    border-radius: 50%;\n    background: var(--lc-bright);\n  }\n  .status .unit {\n    font-size: inherit;\n    opacity: 0.65;\n  }\n  .status .muted {\n    opacity: 0.5;\n  }\n\n  .unavailable {\n    padding: 24px;\n    text-align: center;\n    color: var(--lc-fg2);\n  }\n\n  :host([data-paused]) .pt,\n  :host([data-paused]) .spin,\n  :host([data-paused]) .osc,\n  :host([data-paused]) .osc-slow,\n  :host([data-paused]) .climb {\n    animation-play-state: paused;\n  }\n  svg [role='slider']:focus-visible {\n    outline: 2px solid var(--lc-bright);\n    outline-offset: 3px;\n  }\n\n  .m-subtle .pt,\n  .m-minimal .pt {\n    display: none;\n  }\n  .m-minimal .spin,\n  .m-minimal .osc,\n  .m-minimal .osc-slow,\n  .m-minimal .climb {\n    animation: none;\n  }\n  @media (prefers-reduced-motion: reduce) {\n    .glow {\n      display: none;\n    }\n    .pt {\n      display: none;\n    }\n    .spin,\n    .osc,\n    .osc-slow,\n    .climb,\n    .pop {\n      animation: none;\n    }\n    .press,\n    .tint {\n      transition: none;\n    }\n  }\n",
+    "tile": "\n      :host {\n        display: block;\n      }\n      .tile {\n        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;\n        -webkit-font-smoothing: antialiased;\n        font-feature-settings: 'tnum' 1;\n        position: relative;\n        box-sizing: border-box;\n        height: 96px;\n        padding: 0 12px 0 14px;\n        display: flex;\n        align-items: center;\n        gap: 14px;\n        border-radius: var(--lc-radius, 26px);\n        color: var(--lc-fg);\n        background: var(--lc-bg);\n        backdrop-filter: blur(var(--lc-blur, var(--_blur, 30px))) saturate(170%);\n        -webkit-backdrop-filter: blur(var(--lc-blur, var(--_blur, 30px))) saturate(170%);\n        border: 1px solid var(--lc-edge);\n        box-shadow:\n          inset 0 1px 0 var(--lc-shine),\n          0 20px 40px -20px rgba(0, 0, 0, 0.6);\n      }\n      button {\n        font: inherit;\n        color: inherit;\n        cursor: pointer;\n        margin: 0;\n        border: 1px solid var(--lc-btn-edge);\n        background: var(--lc-btn);\n      }\n      button:focus-visible {\n        outline: 2px solid var(--lc-bright);\n        outline-offset: 2px;\n      }\n      button:disabled {\n        cursor: default;\n      }\n      .press {\n        transition:\n          transform 0.3s cubic-bezier(0.3, 1.7, 0.5, 1),\n          background-color 0.5s ease,\n          border-color 0.5s ease;\n      }\n      .press:active:not(:disabled) {\n        transform: scale(0.9);\n      }\n      .power {\n        width: 50px;\n        height: 50px;\n        flex: none;\n        border-radius: 16px;\n        padding: 0;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n      }\n      .power:disabled {\n        opacity: 0.5;\n      }\n      .body {\n        flex: 1 1 auto;\n        min-width: 0;\n        display: flex;\n        flex-direction: column;\n        gap: 3px;\n        padding: 0;\n        border: none;\n        background: none;\n        text-align: left;\n        border-radius: 8px;\n      }\n      .name {\n        font-size: 16px;\n        font-weight: 600;\n        letter-spacing: -0.01em;\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: ellipsis;\n      }\n      .sub {\n        font-size: 13px;\n        color: var(--lc-fg2);\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: ellipsis;\n      }\n      .sub.err {\n        color: var(--lc-warn);\n      }\n      .sr {\n        position: absolute;\n        width: 1px;\n        height: 1px;\n        margin: -1px;\n        padding: 0;\n        overflow: hidden;\n        clip: rect(0 0 0 0);\n        white-space: nowrap;\n        border: 0;\n      }\n      .steps {\n        display: flex;\n        align-items: center;\n        gap: 2px;\n        flex: none;\n      }\n      .step {\n        width: 44px;\n        height: 44px;\n        border-radius: 50%;\n        padding: 0;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n      }\n      .step:disabled {\n        opacity: 0.3;\n      }\n      .target {\n        width: 64px;\n        text-align: center;\n        font-size: 24px;\n        font-weight: 300;\n        letter-spacing: -0.03em;\n        white-space: nowrap;\n      }\n      .target.range {\n        width: auto;\n        min-height: 44px;\n        padding: 0 14px;\n        border-radius: 22px;\n        font-size: 20px;\n      }\n      .flick {\n        animation: lcFlick 2.4s ease-in-out infinite;\n        transform-origin: 50% 90%;\n      }\n      @keyframes lcFlick {\n        0%,\n        100% {\n          transform: scale(1) rotate(0);\n        }\n        30% {\n          transform: scale(1.06, 0.97) rotate(-3deg);\n        }\n        60% {\n          transform: scale(0.97, 1.05) rotate(3deg);\n        }\n      }\n      @media (prefers-reduced-motion: reduce) {\n        .flick {\n          animation: none;\n        }\n        .press {\n          transition: none;\n        }\n      }\n    ",
+    "badge": "\n      :host {\n        display: inline-block;\n        max-width: 100%;\n      }\n      .wrap {\n        display: contents;\n      }\n      .g-dark {\n        --lc-ring: #15171d;\n      }\n      .g-light {\n        --lc-ring: #f3f4f7;\n      }\n      /* Sizes follow HA's own badge (ha-badge), through its theme tokens. */\n      .badge {\n        --_size: var(--ha-badge-size, 36px);\n        font: inherit;\n        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;\n        -webkit-font-smoothing: antialiased;\n        font-feature-settings: 'tnum' 1;\n        position: relative;\n        box-sizing: border-box;\n        height: var(--_size);\n        min-width: var(--_size);\n        margin: 0;\n        display: flex;\n        align-items: center;\n        color: var(--lc-fg);\n        background-color: var(--lc-bg);\n        backdrop-filter: blur(var(--lc-blur, var(--_blur, 22px))) saturate(180%);\n        -webkit-backdrop-filter: blur(var(--lc-blur, var(--_blur, 22px))) saturate(180%);\n        border: 1px solid var(--lc-edge);\n        border-radius: var(--ha-badge-border-radius, calc(var(--ha-badge-size, 36px) / 2));\n        box-shadow:\n          inset 0 1px 0 var(--lc-shine),\n          0 12px 28px -14px rgba(0, 0, 0, 0.6);\n        text-align: left;\n      }\n      button.badge {\n        cursor: pointer;\n      }\n      button.badge:focus-visible {\n        outline: 2px solid var(--lc-bright);\n        outline-offset: 2px;\n      }\n      .pill {\n        max-width: 100%;\n        padding: 0 12px;\n        gap: var(--ha-space-2, 8px);\n      }\n      .round {\n        width: var(--_size);\n        padding: 0;\n        justify-content: center;\n      }\n      .ic {\n        flex: none;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        color: var(--lc-bright);\n      }\n      .ic svg {\n        width: var(--ha-badge-icon-size, 18px);\n        height: var(--ha-badge-icon-size, 18px);\n      }\n      /* The tinted circle sits 4px inside the badge edge, like HA pulls its icon in. */\n      .pill .ic {\n        width: calc(var(--_size) - 8px);\n        height: calc(var(--_size) - 8px);\n        margin-inline-start: -8px;\n        border-radius: 50%;\n      }\n      .txt {\n        display: flex;\n        flex-direction: column;\n        min-width: 0;\n      }\n      .n {\n        font-size: var(--ha-font-size-xs, 10px);\n        font-weight: var(--ha-font-weight-medium, 500);\n        line-height: 10px;\n        letter-spacing: 0.1px;\n        color: var(--lc-fg2);\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: ellipsis;\n      }\n      .v {\n        font-size: var(--ha-badge-font-size, var(--ha-font-size-s, 12px));\n        font-weight: var(--ha-font-weight-medium, 500);\n        line-height: var(--ha-line-height-condensed, 1.2);\n        letter-spacing: 0.1px;\n        white-space: nowrap;\n      }\n      .dot {\n        position: absolute;\n        right: 1px;\n        top: 1px;\n        width: 8px;\n        height: 8px;\n        box-sizing: content-box;\n        border-radius: 50%;\n        box-shadow: 0 0 0 2px var(--lc-ring);\n        animation: lcDot 2.4s ease-in-out infinite;\n      }\n      @keyframes lcDot {\n        0%,\n        100% {\n          opacity: 0.5;\n          transform: scale(0.85);\n        }\n        50% {\n          opacity: 1;\n          transform: scale(1.1);\n        }\n      }\n      .m-minimal .dot {\n        animation: none;\n      }\n      @media (prefers-reduced-motion: reduce) {\n        .dot {\n          animation: none;\n        }\n      }\n    ",
+    "cluster": "\n      :host {\n        display: block;\n        container-type: inline-size;\n      }\n      .g-dark {\n        --lc-room: rgba(255,255,255,0.04);\n        --lc-room-on: rgba(100,140,240,0.1);\n        --lc-room-edge: rgba(255,255,255,0.07);\n        --lc-room-on-edge: rgba(255,255,255,0.26);\n      }\n      .g-light {\n        --lc-room: rgba(255,255,255,0.55);\n        --lc-room-on: rgba(255,255,255,0.7);\n        --lc-room-edge: rgba(16,20,27,0.08);\n        --lc-room-on-edge: rgba(16,20,27,0.3);\n      }\n      .cluster {\n        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;\n        -webkit-font-smoothing: antialiased;\n        font-feature-settings: 'tnum' 1;\n        position: relative;\n        box-sizing: border-box;\n        padding: 16px;\n        display: flex;\n        flex-direction: column;\n        gap: 14px;\n        border-radius: var(--lc-radius, 36px);\n        color: var(--lc-fg);\n        background: var(--lc-bg);\n        backdrop-filter: blur(var(--lc-blur, var(--_blur, 30px))) saturate(170%);\n        -webkit-backdrop-filter: blur(var(--lc-blur, var(--_blur, 30px))) saturate(170%);\n        border: 1px solid var(--lc-edge);\n        box-shadow:\n          inset 0 1px 0 var(--lc-shine),\n          0 40px 80px -24px rgba(0, 0, 0, 0.65);\n      }\n      button {\n        font: inherit;\n        color: inherit;\n        cursor: pointer;\n        margin: 0;\n        border: 1px solid var(--lc-btn-edge);\n        background: var(--lc-btn);\n      }\n      button:focus-visible {\n        outline: 2px solid var(--lc-bright);\n        outline-offset: 2px;\n      }\n      button:disabled {\n        cursor: default;\n      }\n      .press {\n        transition:\n          transform 0.3s cubic-bezier(0.3, 1.7, 0.5, 1),\n          background-color 0.5s ease,\n          border-color 0.5s ease;\n      }\n      .press:active:not(:disabled):not([aria-disabled='true']) {\n        transform: scale(0.96);\n      }\n      header {\n        display: flex;\n        align-items: baseline;\n        justify-content: space-between;\n        gap: 6px 16px;\n        flex-wrap: wrap;\n      }\n      .title {\n        display: flex;\n        align-items: baseline;\n        gap: 12px;\n        min-width: 0;\n      }\n      h2 {\n        margin: 0;\n        font-size: 22px;\n        font-weight: 600;\n        letter-spacing: -0.02em;\n      }\n      .sum,\n      .figs {\n        font-size: 13px;\n        color: var(--lc-fg2);\n      }\n      .figs {\n        display: flex;\n        flex-wrap: wrap;\n        gap: 4px 22px;\n      }\n      .fig strong {\n        font-weight: 500;\n        color: var(--lc-fg);\n      }\n      .group {\n        display: contents;\n      }\n      .floor {\n        margin: 2px 0 -4px;\n        font-size: 12px;\n        font-weight: 500;\n        color: var(--lc-fg2);\n      }\n      /* Narrow: compact rooms in a horizontal scroller. The vertical padding keeps focus rings unclipped. */\n      .rooms {\n        display: flex;\n        gap: 10px;\n        overflow-x: auto;\n        scroll-snap-type: x mandatory;\n        overscroll-behavior-x: contain;\n        scrollbar-width: none;\n        margin: -6px -16px;\n        padding: 6px 16px;\n        scroll-padding: 0 16px;\n      }\n      .rooms::-webkit-scrollbar {\n        display: none;\n      }\n      .room {\n        /* The next room peeks in, so the row reads as scrollable. */\n        flex: 0 0 min(158px, 42cqw);\n        scroll-snap-align: start;\n        box-sizing: border-box;\n        min-width: 0;\n        border-radius: 22px;\n        padding: 12px;\n        display: flex;\n        flex-direction: column;\n        align-items: stretch;\n        gap: 4px;\n        text-align: left;\n        background: var(--lc-room);\n        border-color: var(--lc-room-edge);\n      }\n      .room.sel {\n        background: var(--lc-room-on);\n        border-color: var(--lc-room-on-edge);\n      }\n      .rhead {\n        display: flex;\n        align-items: center;\n        justify-content: space-between;\n        gap: 8px;\n      }\n      .rname {\n        font-size: 15px;\n        font-weight: 600;\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: ellipsis;\n      }\n      .ricon {\n        display: flex;\n        flex: none;\n      }\n      .mini {\n        position: relative;\n        align-self: center;\n        width: min(190px, 100%);\n        aspect-ratio: 1;\n        display: block;\n      }\n      .mini-svg {\n        position: absolute;\n        inset: 0;\n        width: 100%;\n        height: 100%;\n        fill: none;\n        stroke-linecap: round;\n      }\n      .track {\n        stroke: var(--lc-track);\n        stroke-width: 14;\n      }\n      .prog {\n        stroke-width: 14;\n      }\n      .fan-dim {\n        stroke: var(--lc-track);\n        stroke-width: 10;\n      }\n      .fan-lit {\n        stroke: var(--lc-bright);\n        stroke-width: 10;\n        opacity: 0.8;\n      }\n      .spin {\n        stroke: var(--lc-tick);\n        stroke-width: 2;\n        stroke-dasharray: 2.4 14;\n        transform-box: fill-box;\n        transform-origin: center;\n        animation: lcSpin 7s linear infinite;\n      }\n      .m-minimal .spin {\n        animation: none;\n      }\n      @keyframes lcSpin {\n        to {\n          transform: rotate(360deg);\n        }\n      }\n      .dot {\n        fill: var(--lc-bright);\n        stroke: none;\n        opacity: 0.7;\n      }\n      .knob {\n        fill: #ffffff;\n        stroke-width: 6;\n      }\n      .center {\n        position: absolute;\n        inset: 0;\n        display: flex;\n        flex-direction: column;\n        align-items: center;\n        justify-content: center;\n        padding-bottom: 4px;\n      }\n      .tline {\n        display: flex;\n        align-items: flex-start;\n      }\n      .big {\n        font-size: 34px;\n        font-weight: 200;\n        letter-spacing: -0.04em;\n        line-height: 1;\n      }\n      .tline.range .big {\n        font-size: 18px;\n        font-weight: 300;\n      }\n      .deg {\n        font-size: 15px;\n        font-weight: 300;\n        margin-top: 3px;\n        color: var(--lc-fg2);\n      }\n      .inside {\n        font-size: 12px;\n        color: var(--lc-fg2);\n        margin-top: 6px;\n        max-width: 100%;\n        min-width: 0;\n        overflow: hidden;\n        text-overflow: ellipsis;\n        white-space: nowrap;\n      }\n      .foot {\n        font-size: 12px;\n        color: var(--lc-fg3);\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: ellipsis;\n      }\n      .foot.warn,\n      .sverb.warn {\n        color: var(--lc-warn);\n      }\n      /* Error codes stay visible: up to two lines instead of an ellipsis. */\n      .foot.warn {\n        white-space: normal;\n        display: -webkit-box;\n        -webkit-box-orient: vertical;\n        -webkit-line-clamp: 2;\n        line-clamp: 2;\n      }\n      .empty {\n        margin: 0;\n        font-size: 13px;\n        color: var(--lc-fg2);\n      }\n      /* Name and steppers on one row, the modes below; from 720px all on one row (see below). */\n      .strip {\n        display: grid;\n        grid-template-columns: minmax(0, 1fr) auto;\n        grid-template-areas: 'who steps' 'modes modes';\n        align-items: center;\n        gap: 12px 16px;\n        border-top: 1px solid var(--lc-line);\n        padding-top: 14px;\n      }\n      .strip.nomodes {\n        grid-template-areas: 'who steps';\n      }\n      .who {\n        grid-area: who;\n        min-width: 0;\n        min-height: 44px;\n        display: flex;\n        align-items: center;\n        gap: 6px;\n        padding: 0 8px;\n        margin-left: -8px;\n        border: none;\n        background: none;\n        text-align: left;\n        border-radius: 12px;\n        transition: background-color 0.3s ease;\n      }\n      .who:hover,\n      .who:focus-visible {\n        background: var(--lc-btn);\n      }\n      .wtext {\n        min-width: 0;\n        display: flex;\n        flex-direction: column;\n        gap: 2px;\n      }\n      .chev {\n        display: flex;\n        flex: none;\n        color: var(--lc-fg2);\n      }\n      .sname {\n        font-size: 15px;\n        font-weight: 600;\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: ellipsis;\n      }\n      .sverb {\n        font-size: 12px;\n        color: var(--lc-fg3);\n        white-space: nowrap;\n        overflow: hidden;\n        text-overflow: ellipsis;\n      }\n      .modes {\n        grid-area: modes;\n        min-width: 0;\n        display: flex;\n        flex-wrap: wrap;\n        gap: 6px;\n      }\n      .mode {\n        width: 44px;\n        height: 44px;\n        border-radius: 14px;\n        padding: 0;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n      }\n      .steps {\n        grid-area: steps;\n        display: flex;\n        align-items: center;\n        gap: 6px;\n      }\n      .step {\n        width: 44px;\n        height: 44px;\n        border-radius: 50%;\n        padding: 0;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n      }\n      /* aria-disabled, not disabled: the button keeps focus and _step ignores the click. */\n      .step[aria-disabled='true'] {\n        opacity: 0.3;\n        cursor: default;\n      }\n      .target {\n        width: 66px;\n        text-align: center;\n        font-size: 24px;\n        font-weight: 300;\n        letter-spacing: -0.03em;\n        white-space: nowrap;\n      }\n      .target.range {\n        width: auto;\n        min-height: 44px;\n        padding: 0 14px;\n        border-radius: 22px;\n        font-size: 20px;\n      }\n      .sr {\n        position: absolute;\n        width: 1px;\n        height: 1px;\n        margin: -1px;\n        padding: 0;\n        overflow: hidden;\n        clip: rect(0 0 0 0);\n        white-space: nowrap;\n        border: 0;\n      }\n      /* Medium: two columns of full rooms. */\n      @container (min-width: 440px) {\n        .cluster {\n          padding: 20px;\n        }\n        .rooms {\n          display: grid;\n          grid-template-columns: repeat(2, minmax(0, 1fr));\n          gap: 12px;\n          overflow: visible;\n          margin: 0;\n          padding: 0;\n        }\n        .room {\n          border-radius: 26px;\n          padding: 14px;\n        }\n        .big {\n          font-size: 40px;\n        }\n        .deg {\n          font-size: 17px;\n        }\n        .tline.range .big {\n          font-size: 22px;\n        }\n      }\n      /* Wide: three columns, the strip on one row like the board; many modes wrap inside their cell. */\n      @container (min-width: 720px) {\n        .cluster {\n          padding: 24px;\n          gap: 18px;\n        }\n        .rooms {\n          grid-template-columns: repeat(3, minmax(0, 1fr));\n        }\n        .room {\n          padding: 16px;\n        }\n        .big {\n          font-size: 44px;\n        }\n        .deg {\n          font-size: 18px;\n          margin-top: 4px;\n        }\n        .strip,\n        .strip.nomodes {\n          grid-template-columns: minmax(96px, 150px) minmax(0, 1fr) auto;\n          grid-template-areas: 'who modes steps';\n          padding-top: 16px;\n        }\n        .steps {\n          gap: 8px;\n        }\n      }\n      @media (prefers-reduced-motion: reduce) {\n        .spin {\n          animation: none;\n        }\n        .press,\n        .who {\n          transition: none;\n        }\n      }\n    "
+  }
+}

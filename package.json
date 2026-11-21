@@ -1,0 +1,54 @@
+{
+  "name": "@decibel95/liquid-core",
+  "version": "0.1.0",
+  "description": "Shared glass design tokens, colour and write helpers for the Liquid Climate and Liquid Home card sets",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/decibel95/liquid-core.git"
+  },
+  "homepage": "https://github.com/decibel95/liquid-core",
+  "bugs": {
+    "url": "https://github.com/decibel95/liquid-core/issues"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "prepack": "npm run build",
+    "build": "tsc -p tsconfig.build.json && node scripts/add-js-extensions.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "parity:fixture": "node scripts/parity-fixture.mjs",
+    "dev": "vite --host 127.0.0.1 --open /dev/slider.html",
+    "shots:slider": "node scripts/slider-shots.mjs"
+  },
+  "peerDependencies": {
+    "lit": "3.2.1"
+  },
+  "devDependencies": {
+    "happy-dom": "15.11.7",
+    "lit": "3.2.1",
+    "playwright": "1.65.1",
+    "typescript": "5.6.3",
+    "vite": "5.4.11",
+    "vitest": "2.1.8"
+  }
+}

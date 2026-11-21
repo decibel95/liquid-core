@@ -1,0 +1,111 @@
+name: Publish
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+permissions: {}
+jobs:
+  build:
+    # Does nothing if a Forgejo runner ever picks this up: only the public GitHub repository publishes.
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: Check tag matches package.json version
+        run: |
+          pkg="v$(node -p "require('./package.json').version")"
+          if [ "$pkg" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version ${pkg#v}" >&2
+            exit 1
+          fi
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          scripts/release-notes.sh "$version" > notes.md || {
+            echo "::error::CHANGELOG.md has no section for $version. Add a '## $version' entry before tagging."
+            exit 1
+          }
+          cat notes.md
+      - name: Pack
+        run: npm pack --ignore-scripts
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release
+          path: |
+            *.tgz
+            notes.md
+          if-no-files-found: error
+          retention-days: 7
+  publish:
+    needs: build
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          # Trusted publishing needs Node 22.14.0 or newer and npm 11.5.1 or newer.
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install npm for trusted publishing
+        run: |
+          npm install --global npm@11.6.2 --ignore-scripts
+          npm --version
+      - name: Publish to npm
+        # Trusted publishing (OIDC) is used when no token is set. NPM_TOKEN is only for the very first publish,
+        # before the trusted publisher can exist on npmjs.com (it needs the package); delete the secret afterwards.
+        # NODE_AUTH_TOKEN is exported only when the secret exists, so otherwise setup-node's placeholder stays
+        # and npm falls back to OIDC.
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # A prerelease must not take the latest tag.
+          tag=latest
+          case "$GITHUB_REF_NAME" in
+            *-*) tag=next ;;
+          esac
+          if [ -n "$NPM_TOKEN" ]; then export NODE_AUTH_TOKEN="$NPM_TOKEN"; fi
+          # Idempotent: a re-run after a partial failure skips the publish and continues to the release,
+          # but only when the published tarball is byte-identical to the one built in this run.
+          ver="${GITHUB_REF_NAME#v}"
+          local_integrity="sha512-$(openssl dgst -sha512 -binary ./*.tgz | base64 -w0)"
+          remote_integrity="$(npm view "@decibel95/liquid-core@$ver" dist.integrity 2>/dev/null || true)"
+          if [ -n "$remote_integrity" ]; then
+            if [ "$remote_integrity" = "$local_integrity" ]; then
+              echo "@decibel95/liquid-core@$ver is already on npm with the same integrity, skipping publish."
+              exit 0
+            fi
+            echo "::error::@decibel95/liquid-core@$ver is on npm with different integrity ($remote_integrity, local $local_integrity)."
+            exit 1
+          fi
+          npm publish ./*.tgz --provenance --access public --tag "$tag" --ignore-scripts
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists, nothing to do."
+            exit 0
+          fi
+          flags=""
+          case "$GITHUB_REF_NAME" in
+            *-*) flags="--prerelease" ;;
+          esac
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file notes.md --verify-tag $flags

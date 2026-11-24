@@ -62,10 +62,18 @@ describe('icons equal lucide-static 0.460.0', () => {
   it('ICO-3 rainbow is Lucide rainbow', () => expect(ICONS.rainbow).toBe(toIconPath(lucide('rainbow'))));
 
   it('the gate 1 icons follow the 24 Liquid Climate icons, nothing else', () => {
-    expect(Object.keys(ICONS).slice(24)).toEqual(['bulb', 'sun', 'rainbow']);
+    expect(Object.keys(ICONS).slice(24)).toEqual(['bulb', 'sun', 'rainbow', 'history']);
   });
 
   it('every icon is path data only (line icons, no shapes or fills)', () => {
     for (const d of Object.values(ICONS)) expect(d).toMatch(/^[MmLlHhVvCcSsQqTtAaZz\d\s.,-]+$/);
+  });
+});
+
+describe('ICONS.history', () => {
+  it('is Lucide history', () => {
+    const svg = lucide('history');
+    expect(svg).toContain('@license lucide-static v0.460.0 - ISC');
+    expect(ICONS.history).toBe(toIconPath(svg));
   });
 });

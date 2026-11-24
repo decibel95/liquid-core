@@ -20,3 +20,15 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+================================================================================
+
+liquid-core includes a subset of the Inter typeface (Inter 4.1, InterVariable.ttf),
+https://github.com/rsms/inter, as fonts/liquid-inter.woff2. It is built by
+scripts/build-font.sh: weights 200 to 600, optical size 14, Latin and Latin
+Extended-A only, without hinting.
+
+Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+
+The font is licensed under the SIL Open Font License, Version 1.1. The full
+licence text is in fonts/OFL.txt, unchanged.

@@ -39,4 +39,6 @@ export const ICONS = {
   sun: 'M12 8a4 4 0 1 0 0 8 4 4 0 1 0 0-8z M12 2v2 M12 20v2 M4.93 4.93l1.41 1.41 M17.66 17.66l1.41 1.41 M2 12h2 M20 12h2 M6.34 17.66l-1.41 1.41 M19.07 4.93l-1.41 1.41',
   /** ICO-3, Lucide rainbow: the Colour pill mode (TOK-22). */
   rainbow: 'M22 17a10 10 0 0 0-20 0 M6 17a6 6 0 0 1 12 0 M10 17a2 2 0 0 1 4 0',
+  /** Lucide history (lucide-static 0.460.0, icons/history.svg): the history button in a sheet header. */
+  history: 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5 M12 7v5l4 2',
 } as const;

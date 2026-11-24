@@ -9,6 +9,8 @@ import {
   SliderController,
   brightnessPercent,
   entityColour,
+  LIQUID_FONT_STACK,
+  ensureLiquidFont,
   focusRing,
   glassTokens,
   levelPercent,
@@ -16,6 +18,10 @@ import {
   sliderStyles,
   type SliderKind,
 } from '../src/index';
+
+// The local font file, served by the Vite dev server, instead of a Google Fonts request. Body text uses the same stack.
+ensureLiquidFont(new URL('../fonts/liquid-inter.woff2', import.meta.url).href);
+document.body.style.fontFamily = LIQUID_FONT_STACK;
 
 const params = new URLSearchParams(location.search);
 const glass: 'dark' | 'light' = params.get('glass') === 'light' ? 'light' : 'dark';
@@ -79,7 +85,7 @@ class CoreDevSlider extends LitElement {
         backdrop-filter: blur(30px) saturate(170%);
         border: 1px solid var(--lc-edge);
         box-shadow: inset 0 1px 0 var(--lc-shine), 0 40px 80px -24px rgba(0, 0, 0, 0.45);
-        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-family: ${unsafeCSS(LIQUID_FONT_STACK)};
       }
       .patch { display: inline-block; padding: 24px; border-radius: 40px; }
       .card { width: 320px; padding: 22px; border-radius: 40px; }

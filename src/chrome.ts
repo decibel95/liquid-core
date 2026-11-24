@@ -1,4 +1,5 @@
 import { css, unsafeCSS } from 'lit';
+import { LIQUID_FONT_STACK } from './font';
 import { ROOM_FILL } from './glass';
 import { DISABLED_OPACITY, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from './tokens';
 
@@ -7,7 +8,8 @@ import { DISABLED_OPACITY, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from './token
  * badge and the cluster card, so every product draws the same glass card, header, buttons, chips and type scale.
  * Climate-only rules (the arc dial and its parts, range pills, flicker, attention dot, mini dial, figures, floors) are
  * not here. test/chrome.test.ts parses every rule below and compares its declarations with the same rule in the
- * Liquid Climate source (test/fixtures/lc-0.11.1-tokens.json, written by scripts/parity-fixture.mjs).
+ * Liquid Climate source (test/fixtures/lc-0.11.1-tokens.json, written by scripts/parity-fixture.mjs). The one
+ * difference is the font stack: core puts its own 'Liquid Inter' face (font.ts) before Liquid Climate's stack.
  *
  * The named values below are interpolated into the stylesheets; `src/...:N` is the Liquid Climate source line.
  * Products add glassTokens and focusRing next to a chrome stylesheet; the chrome itself has no focus rule.
@@ -120,7 +122,7 @@ export const CHEVRON = 'M9 6l6 6-6 6';
 
 const RADIUS = unsafeCSS(THEME_VARS.radius);
 const BLUR = unsafeCSS(THEME_VARS.blur);
-const FONT = unsafeCSS("'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif");
+const FONT = unsafeCSS(LIQUID_FONT_STACK);
 
 /**
  * Dial-family card chrome: the glass card `.lc`, header, power, mode buttons, chips, alert, unavailable text.

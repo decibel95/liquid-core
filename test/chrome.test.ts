@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import fixture from './fixtures/lc-0.11.1-tokens.json';
 import { cssRules } from './helpers/css-rules';
 import { BADGE, CHEVRON, CLUSTER, CLUSTER_ICON, DIAL, TILE, badgeChrome, clusterChrome, clusterRoomLayout, clusterStyles, dialChrome, tileChrome } from '../src/chrome';
+import { LIQUID_FONT_STACK } from '../src/font';
 import { ICONS } from '../src/icons';
 import { TINT } from '../src/palette';
 import { DISABLED_OPACITY, PILL_MODES, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from '../src/tokens';
@@ -10,6 +11,10 @@ import { DISABLED_OPACITY, PILL_MODES, THEME_VARS, UNAVAILABLE_POWER_OPACITY } f
 const sheets = { dial: dialChrome, tile: tileChrome, badge: badgeChrome, cluster: clusterChrome } as const;
 // The one rule that is not a Liquid Climate value: the room value block of the gate 2 prototype (CHO-12).
 const NOT_LC = new Set(['.room .rv']);
+// The one declaration that differs on purpose: core puts its own 'Liquid Inter' face before the Liquid Climate stack.
+const LC_FONT = "font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+const CORE_FONT = `font-family: ${LIQUID_FONT_STACK}`;
+const asLc = (list: string[]) => list.map((d) => (d === CORE_FONT ? LC_FONT : d));
 
 describe.each(Object.entries(sheets))('%sChrome', (name, sheet) => {
   const core = cssRules(sheet.cssText);
@@ -21,8 +26,14 @@ describe.each(Object.entries(sheets))('%sChrome', (name, sheet) => {
     for (const [key, list] of core) {
       if (NOT_LC.has(key)) continue;
       expect(lc.has(key), `${name}: ${key} is not in Liquid Climate`).toBe(true);
-      expect(list, `${name}: ${key}`).toEqual(lc.get(key));
+      expect(asLc(list), `${name}: ${key}`).toEqual(lc.get(key));
     }
+  });
+
+  it("every font-family is the core stack, 'Liquid Inter' first, then the Liquid Climate stack", () => {
+    const fonts = [...core.values()].flat().filter((d) => d.startsWith('font-family:'));
+    expect(fonts.length).toBeGreaterThan(0);
+    for (const d of fonts) expect(d).toBe(`font-family: 'Liquid Inter', ${LC_FONT.slice('font-family: '.length)}`);
   });
 
   it('has no focus rule (products add focusRing) and no climate-only rule', () => {

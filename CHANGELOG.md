@@ -5,9 +5,22 @@ All notable changes to liquid-core. The format follows [Keep a Changelog](https:
 While liquid-core is 0.x, a minor bump marks any visual change (a token value, a style, an icon path) or an API break, and a patch bump marks non-visual fixes only. Every visual change is listed under `### Changed` with the token name and the old and new value.
 
 <!-- #region entries -->
-## 0.1.1
+## 0.2.0
 
 The current version.
+
+### Added
+- Products can now ship the Inter font and load it with `ensureLiquidFont(url)`, so cards look the same on every system. The font is `fonts/liquid-inter.woff2` (43 KB, family `Liquid Inter`); the SIL Open Font License 1.1 text is `fonts/OFL.txt`, and products must ship it with the font.
+- A history button for sheets. A sheet can show a history button next to Close, set with `historyEntityId` in the sheet config. It closes the sheet and opens that entity's page in the Home Assistant history, without reloading the page. It is off by default.
+- `openHistory(el, entityId)` goes to the history page of an entity the same way Home Assistant does.
+- A new history icon (`ICONS.history`, Lucide 0.460.0, same line style as the other icons).
+- The label `core.history` in English, Dutch, German, French, Spanish and Italian.
+
+### Changed
+- The sheet now uses the Liquid font itself, also when it is opened outside a card.
+- The font stack of all card chrome (`dialChrome`, `tileChrome`, `badgeChrome`, `clusterChrome`) now starts with `'Liquid Inter'`: was `'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`, now `'Liquid Inter', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif` (`LIQUID_FONT_STACK`). A page that never calls `ensureLiquidFont()` looks as before. This is a visual change, so it is released in a minor version.
+
+## 0.1.1
 
 ### Changed
 - First version on npm. 0.1.0 was tagged but never published to npm, because npm only accepted a staged first version from the CI token. The code is unchanged from 0.1.0.

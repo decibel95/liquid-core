@@ -30,6 +30,7 @@ export function flatten(tree: Tree, prefix = ''): Record<string, string> {
 const CORE: Record<Language, Tree> = {
   en: {
     close: 'Close',
+    history: 'History',
     off: 'Off',
     unavailable: 'Unavailable',
     percent: '{value}%',
@@ -50,6 +51,7 @@ const CORE: Record<Language, Tree> = {
   },
   nl: {
     close: 'Sluiten',
+    history: 'Geschiedenis',
     off: 'Uit',
     unavailable: 'Niet beschikbaar',
     percent: '{value}%',
@@ -70,6 +72,7 @@ const CORE: Record<Language, Tree> = {
   },
   de: {
     close: 'Schließen',
+    history: 'Verlauf',
     off: 'Aus',
     unavailable: 'Nicht verfügbar',
     percent: '{value} %',
@@ -90,6 +93,7 @@ const CORE: Record<Language, Tree> = {
   },
   fr: {
     close: 'Fermer',
+    history: 'Historique',
     off: 'Arrêt',
     unavailable: 'Indisponible',
     percent: '{value} %',
@@ -110,6 +114,7 @@ const CORE: Record<Language, Tree> = {
   },
   es: {
     close: 'Cerrar',
+    history: 'Historial',
     off: 'Apagado',
     unavailable: 'No disponible',
     percent: '{value} %',
@@ -130,6 +135,7 @@ const CORE: Record<Language, Tree> = {
   },
   it: {
     close: 'Chiudi',
+    history: 'Storico',
     off: 'Spento',
     unavailable: 'Non disponibile',
     percent: '{value}%',

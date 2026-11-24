@@ -1,6 +1,6 @@
 # liquid-core
 
-Shared building blocks for the Liquid Climate and Liquid Home card sets for Home Assistant: the glass palettes and styles, design tokens, entity colour, line icons, the vertical slider, the focus ring, string layers, the sheet base, editor helpers, number helpers and a few small Home Assistant helpers.
+Shared building blocks for the Liquid Climate and Liquid Home card sets for Home Assistant: the glass palettes and styles, the Inter font, design tokens, entity colour, line icons, the vertical slider, the focus ring, string layers, the sheet base, editor helpers, number helpers and a few small Home Assistant helpers.
 
 Released on npm as `@decibel95/liquid-core` from 0.1.1 on (0.1.0 was tagged but never published to npm). While it is 0.x, a minor bump marks a visual change or an API break (see [CHANGELOG.md](CHANGELOG.md)).
 
@@ -23,12 +23,14 @@ Everything is exported from the package root (`@decibel95/liquid-core`) and from
 | `colour` | `entityColour()`, `isNeutral()`, `glassGround()`, `spectrumStops()`, `kelvinToRgb()`, `hsvToRgb()`, `rgbToHex()`, `toOklch()`, `fromOklch()`, `clampChroma()`, types `EntityColour`, `EntityColourOptions`, `Oklch` | entity-colour (decision 6): a lamp colour kept at 3:1 against the glass base and the slider track, or the neutral. `entityColour(rgb, glass)` returns `{ hex, neutral, ok }`. |
 | `tokens` | `SLIDER`, `FOCUS`, `READOUT`, `ENTITY`, `ART`, `SPECTRUM`, `PILL_MODES`, `THEME_VARS`, `DISABLED_OPACITY`, `UNAVAILABLE_POWER_OPACITY` | The named tokens approved at gate 1 and the shared state values (table below). |
 | `chrome` | `dialChrome`, `tileChrome`, `badgeChrome`, `clusterChrome` (alias `clusterStyles`), `clusterRoomLayout`, `DIAL`, `TILE`, `BADGE`, `CLUSTER`, `CLUSTER_ICON`, `CHEVRON` | Card chrome copied from Liquid Climate 0.11.1: the glass card, header, buttons, chips, tile row, badge and cluster layouts, see below. |
-| `icons` | `ICONS` | Stroke line icon paths (Lucide 0.460.0 style), including `bulb`, `sun` and `rainbow`. |
+| `icons` | `ICONS` | Stroke line icon paths (Lucide 0.460.0 style), including `bulb`, `sun`, `rainbow` and `history`. |
 | `focus` | `focusRing` | The focus ring stylesheet (TOK-19). |
+| `font` | `ensureLiquidFont(url)`, `LIQUID_FONT_FAMILY`, `LIQUID_FONT_STACK`, `LIQUID_FONT_FILE`, `LIQUID_FONT_UNICODE_RANGE`, `LIQUID_FONT_STYLE_ID` | The shipped Inter font (`fonts/liquid-inter.woff2`, family `Liquid Inter`) and the font stack of the chrome, see below. |
 | `slider` | `SliderController`, `renderSlider()`, `sliderStyles`, `levelPercent()`, `brightnessPercent()`, `spectrumGradient()`, types `SliderView`, `SliderCallbacks`, `SliderKind`, `SliderSource`, `SliderMotion` | The vertical slider (decision 5), see below. |
-| `i18n` | `createI18n()`, `coreT`, `CORE_LAYER`, `LANGUAGES`, `flatten`, `rawLanguage`, `resolveLanguage`, `num`, `numAuto`, `haLocalize`, `humanize`, `translated`, types `I18n`, `I18nLayer`, `I18nHass`, `Language`, `Vars` | String layers. `createI18n([product, ...cards])` merges core, product and card strings (later wins) per language, English as the fallback. Core strings live under `core.*` (`core.off`, `core.unavailable`, `core.percent`, `core.close`, `core.editor.*`). |
-| `sheet` | `LiquidSheetBase`, types `SheetConfig`, `SheetOwner` | Abstract modal sheet (a `<dialog>` on glass) with an abstract `createContent(config)`. No tag: products subclass and define it. `open(config, returnTo?)` as Liquid Climate; `openFor(owner, config, returnTo?)` also follows the owner card (below). |
+| `i18n` | `createI18n()`, `coreT`, `CORE_LAYER`, `LANGUAGES`, `flatten`, `rawLanguage`, `resolveLanguage`, `num`, `numAuto`, `haLocalize`, `humanize`, `translated`, types `I18n`, `I18nLayer`, `I18nHass`, `Language`, `Vars` | String layers. `createI18n([product, ...cards])` merges core, product and card strings (later wins) per language, English as the fallback. Core strings live under `core.*` (`core.off`, `core.unavailable`, `core.percent`, `core.close`, `core.history`, `core.editor.*`). |
+| `sheet` | `LiquidSheetBase`, types `SheetConfig`, `SheetOwner` | Abstract modal sheet (a `<dialog>` on glass) with an abstract `createContent(config)`. No tag: products subclass and define it. `open(config, returnTo?)` as Liquid Climate; `openFor(owner, config, returnTo?)` also follows the owner card (below). `SheetConfig.historyEntityId` is opt-in: when set, a history button sits in the header next to Close (Close and then navigate with `openHistory`), labelled `core.history`; `reconfigure()` adds or removes it. |
 | `editor` | `segField()`, `lookFields()`, `helpLink()`, `editorStyles`, types `EditorT`, `LookValues` | Template helpers for card editors (segmented fields, the look section, help links). |
+| `navigate` | `openHistory(el, entityId)` | Goes to HA's history page for an entity without a reload, matching HA 2026.11's own navigate(): `history.pushState({ from: location.pathname }, '', '/history?entity_id=<encoded id>')` (so HA's back arrow returns to the dashboard), then a `location-changed` event (bubbles, composed, detail `{ replace: false }`) on `window`. Not matched: HA's dialog handling, its unsaved-changes guards, and mainWindow (relevant only in popup windows). |
 | `math` | `clamp`, `valueToFraction`, `snap`, `decimalsForStep` | Number helpers. |
 | `render-gate` | `hassNeedsRender` | Whether a new `hass` object changes anything a card shows. |
 | `service` | `callEntityService`, `RowCalls` | Service calls with error reporting. |
@@ -57,7 +59,38 @@ A card holds the queue through its lease, never on the writer directly: `lease.h
 
 ### Chrome
 
-Each card adds `glassTokens`, `focusRing` and its chrome: `dialChrome` (light card: `.lc` glass card 40 radius, 22 padding, 16 gap; `header`, `.titles`, `.sub`, `.actions`, `.power` 44, `.modes`/`.mode`, `.chips`/`.chip` 52/16, `.alert`, `.unavailable`), `tileChrome` (`.tile` 96 high, radius 26; `.power` 50/16, `.body`, `.name`, `.sub`, `.steps`/`.step` 44, `.target`, `.sr`), `badgeChrome` (`.badge` with HA's badge tokens, `.pill`, `.round`, `.ic`, `.txt`, `.n`, `.v`) and `clusterChrome` (`.cluster` radius 36 with 16/20/24 padding per container width, room fills, `header`, `.title`, `.sum`, `.rooms`/`.room`, `.rhead`, `.rname`, `.ricon`, `.tline`, `.big`, `.deg`, `.foot`, `.empty`, the strip `.strip`, `.who`, `.chev`, `.sname`, `.sverb`, `.modes`/`.mode`, `.steps`/`.step`, `.target`, `.sr`, plus `clusterRoomLayout`). `.lc` blurs with `var(--lc-blur, var(--_blur))` and has no fallback of its own (as Liquid Climate), so a card using `dialChrome` must set `--_blur` inline on its `.lc` element from `look.blur`, as Liquid Climate does (`src/cards/dial/liquid-climate-card.ts:461` and `466`). Every rule is the Liquid Climate 0.11.1 rule with the same selector; `test/chrome.test.ts` parses both and compares declarations. The one exception is `clusterRoomLayout` (`.room .rv`), the room value block of the gate 2 prototype (CHO-12). Icons in the cluster strip use `CLUSTER_ICON` sizes and the `CHEVRON` path.
+Each card adds `glassTokens`, `focusRing` and its chrome: `dialChrome` (light card: `.lc` glass card 40 radius, 22 padding, 16 gap; `header`, `.titles`, `.sub`, `.actions`, `.power` 44, `.modes`/`.mode`, `.chips`/`.chip` 52/16, `.alert`, `.unavailable`), `tileChrome` (`.tile` 96 high, radius 26; `.power` 50/16, `.body`, `.name`, `.sub`, `.steps`/`.step` 44, `.target`, `.sr`), `badgeChrome` (`.badge` with HA's badge tokens, `.pill`, `.round`, `.ic`, `.txt`, `.n`, `.v`) and `clusterChrome` (`.cluster` radius 36 with 16/20/24 padding per container width, room fills, `header`, `.title`, `.sum`, `.rooms`/`.room`, `.rhead`, `.rname`, `.ricon`, `.tline`, `.big`, `.deg`, `.foot`, `.empty`, the strip `.strip`, `.who`, `.chev`, `.sname`, `.sverb`, `.modes`/`.mode`, `.steps`/`.step`, `.target`, `.sr`, plus `clusterRoomLayout`). `.lc` blurs with `var(--lc-blur, var(--_blur))` and has no fallback of its own (as Liquid Climate), so a card using `dialChrome` must set `--_blur` inline on its `.lc` element from `look.blur`, as Liquid Climate does (`src/cards/dial/liquid-climate-card.ts:461` and `466`). Every rule is the Liquid Climate 0.11.1 rule with the same selector; `test/chrome.test.ts` parses both and compares declarations. The exceptions are `clusterRoomLayout` (`.room .rv`), the room value block of the gate 2 prototype (CHO-12), and the font stack: every `font-family` is `LIQUID_FONT_STACK`, which puts `'Liquid Inter'` before the Liquid Climate stack (see Font). Icons in the cluster strip use `CLUSTER_ICON` sizes and the `CHEVRON` path.
+
+### Font
+
+liquid-core ships the Inter font, so the cards look the same on every system instead of falling back to the system font where Inter is not installed. The chrome's font stack is `'Liquid Inter', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif` (`LIQUID_FONT_STACK`).
+
+- The file is `fonts/liquid-inter.woff2` in the package (43,008 bytes, sha256 `ec9d6202...b253d7`): Inter 4.1 variable, weights 200 to 600, optical size 14, Latin and Latin Extended-A, with `tnum` for the tabular figures the chrome uses. `scripts/build-font.sh` rebuilds it byte for byte and records the source, the tool versions and the hash; a test checks the committed file's size and sha256.
+- It is a separate file, not embedded in the JavaScript, so it costs nothing in the bundle and the browser caches it.
+- The face is registered as `Liquid Inter`, not `Inter`. A document-level `Inter` face would also change other cards on the page whose stack starts with `Inter` (Liquid Climate 0.11.1). With its own name, only cards that use core's chrome get it.
+- Without `ensureLiquidFont()` the stack falls back as before: an installed Inter, then the system font.
+
+A consumer (a product bundle) does three things:
+
+1. Copy the font next to its bundle at build time, from `@decibel95/liquid-core/fonts/liquid-inter.woff2` (exported as a package path; `LIQUID_FONT_FILE` is the path inside the package). For a HACS release, attach it to the release as an asset next to the `.js`: HACS downloads every release asset and serves it from `/hacsfiles/<repo>/` as `font/woff2`.
+
+2. Call `ensureLiquidFont()` once, at module load, with the URL next to the bundle:
+
+   ```ts
+   import { ensureLiquidFont } from '@decibel95/liquid-core';
+
+   const u = new URL(/* @vite-ignore */ './liquid-inter.woff2', import.meta.url);
+   u.search = new URL(import.meta.url).search;
+   ensureLiquidFont(u.href);
+   ```
+
+   The first line resolves the file next to the bundle; the `@vite-ignore` comment stops Vite library mode from rewriting the literal `new URL(...)`, which would warn or inline the font as a base64 data URL. The second line copies the bundle's own query string (HACS serves the bundle as `?hacstag=...`) onto the font URL, so a new release also busts the browser cache of the font.
+
+3. Ship the licence with the font. The OFL (condition 2) requires the copyright notice and licence text to travel with every copy of the font. Copy `@decibel95/liquid-core/fonts/OFL.txt` (exported as a package path too) and attach it to the release as an asset next to the woff2, and add a NOTICE entry for Inter in the product that points to it.
+
+Versioning: when the font build changes incompatibly, change `LIQUID_FONT_FAMILY` and `LIQUID_FONT_STYLE_ID` together (for example with a `-2` suffix: `Liquid Inter-2`, `liquid-core-font-2`). The first injected face wins document-wide, so an old bundle that still registers the old face must not be able to shadow the new one.
+
+`ensureLiquidFont(url)` adds one `<style id="liquid-core-font">` with the `@font-face` rule (`font-weight: 200 600`, `font-display: swap`, the font's `unicode-range`) to `document.head`. `@font-face` does not work inside a shadow root, so it never goes there; the document-level face reaches the cards' shadow roots. The guard is that element, not module state: when several bundles each carry their own copy of core, the first call registers the face and every later call (with any URL) does nothing. Without a document (SSR, Node) it does nothing.
 
 ### Sheet
 
@@ -178,6 +211,8 @@ npm run dev            # slider harness
 
 `npm run parity:fixture` regenerates the parity fixture from a Liquid Climate checkout (see `scripts/parity-fixture.mjs`).
 
+`scripts/build-font.sh` rebuilds `fonts/liquid-inter.woff2` (needs Python with fonttools 4.68.0 and brotli 1.2.1; see the script). The built file is committed, so CI and normal development do not need it. The script builds in a temporary directory and only replaces the committed file when the sha256 matches; `OUT=/some/path scripts/build-font.sh` writes the result there instead, for a check-only run.
+
 ## Licence
 
-MIT, see [LICENSE](LICENSE). The line icons come from Lucide, see [NOTICE](NOTICE).
+MIT, see [LICENSE](LICENSE). The line icons come from Lucide, see [NOTICE](NOTICE). The Inter font (`fonts/liquid-inter.woff2`) is under the SIL Open Font License 1.1, see [fonts/OFL.txt](fonts/OFL.txt) and [NOTICE](NOTICE).

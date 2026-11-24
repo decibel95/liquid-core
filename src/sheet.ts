@@ -1,8 +1,10 @@
-import { LitElement, css, html, nothing, render, svg, type PropertyValues, type ReactiveController, type ReactiveControllerHost } from 'lit';
+import { LitElement, css, html, nothing, unsafeCSS, render, svg, type PropertyValues, type ReactiveController, type ReactiveControllerHost } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { resolveGlass } from './glass';
+import { LIQUID_FONT_STACK } from './font';
 import { glassTokens } from './glass-styles';
 import { ICONS } from './icons';
+import { openHistory } from './navigate';
 import { coreT, type Vars } from './i18n';
 import { THEME_VARS } from './tokens';
 import type { HomeAssistant } from './types';
@@ -13,6 +15,8 @@ import type { HomeAssistant } from './types';
 export interface SheetConfig {
   entity: string;
   name?: string;
+  /** Opt-in history button in the header, next to Close: the entity whose history page it opens. Absent: no button. */
+  historyEntityId?: string;
   look?: { glass?: 'theme' | 'dark' | 'light'; motion?: 'rich' | 'subtle' | 'minimal' };
 }
 
@@ -63,13 +67,7 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
     const content = this.createContent(config);
     this.applyConfig(content, config);
     (content as HTMLElement & { hass?: HomeAssistant }).hass = this.hass;
-    // Close sits in the content's own header (slot "header-action"), inside the glass.
-    render(
-      html`<button class="close" slot="header-action" aria-label=${this.tr('core.close')} autofocus @click=${() => this.close()}>
-        ${svg`<svg class="i" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d=${ICONS.close}></path></svg>`}
-      </button>`,
-      content,
-    );
+    this._renderActions(content, config);
     this._returnTo = returnTo;
     this._config = config;
     this._content = content;
@@ -82,10 +80,31 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
     if (this._content === content) content.querySelector<HTMLButtonElement>('button.close')?.focus();
   }
 
+  /** The header buttons live in the content's own header (slot "header-action"), inside the glass: history (opt-in), then Close. */
+  private _renderActions(content: HTMLElement, config: C): void {
+    const id = config.historyEntityId;
+    const history = id
+      ? html`<button class="history" slot="header-action" aria-label=${this.tr('core.history')} @click=${() => this._openHistory(id)}>
+          ${svg`<svg class="i" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d=${ICONS.history}></path></svg>`}
+        </button>`
+      : nothing;
+    const close = html`<button class="close" slot="header-action" aria-label=${this.tr('core.close')} autofocus @click=${() => this.close()}>
+      ${svg`<svg class="i" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d=${ICONS.close}></path></svg>`}
+    </button>`;
+    render([history, close], content);
+  }
+
+  /** Close first (removing the content), then navigate: the id is already captured and the event goes to window. */
+  private _openHistory(entityId: string): void {
+    this.close();
+    openHistory(this, entityId);
+  }
+
   /** The owning card's config changed: the open content follows it. */
   reconfigure(config: C): void {
     if (!this._content) return;
     this._config = config;
+    this._renderActions(this._content, config);
     this.applyConfig(this._content, config);
   }
 
@@ -240,6 +259,7 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
         box-shadow: none;
         background: transparent;
         color: var(--lc-fg);
+        font-family: ${unsafeCSS(LIQUID_FONT_STACK)};
         overflow: auto;
         overscroll-behavior: contain;
       }
@@ -283,7 +303,8 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
         display: block;
       }
       /* Slotted into the card header: it inherits the card's glass tokens, like its power button. */
-      .close {
+      .close,
+      .history {
         width: 44px;
         height: 44px;
         flex: none;
@@ -299,7 +320,8 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
         background: var(--lc-btn);
         border: 1px solid var(--lc-btn-edge);
       }
-      .close:focus-visible {
+      .close:focus-visible,
+      .history:focus-visible {
         outline: 2px solid var(--lc-bright);
         outline-offset: 2px;
       }

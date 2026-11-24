@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 /// <reference types="vite/client" />
 import { LitElement, html } from 'lit';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ICONS } from '../src/icons';
 import { LiquidSheetBase, type SheetConfig } from '../src/sheet';
 import type { HomeAssistant } from '../src/types';
 
@@ -70,6 +71,83 @@ describe('LiquidSheetBase', () => {
     expect(el.shadowRoot!.querySelector('test-sheet-content')).toBeNull();
   });
 
+  describe('history button', () => {
+    it('renders only when historyEntityId is set, before Close, with the translated label', async () => {
+      const el = await mount();
+      await el.open(config());
+      expect(el.shadowRoot!.querySelector('button.history')).toBeNull();
+      el.close();
+      await el.open({ ...config(), historyEntityId: 'light.a' });
+      const btns = [...el.shadowRoot!.querySelectorAll('test-sheet-content > button')];
+      expect(btns.map((b) => b.className)).toEqual(['history', 'close']);
+      expect(btns[0].getAttribute('slot')).toBe('header-action');
+      expect(btns[0].getAttribute('aria-label')).toBe('Geschiedenis');
+      expect(btns[0].querySelector('path')!.getAttribute('d')).toBe(ICONS.history);
+    });
+
+    it('follows reconfigure', async () => {
+      const el = await mount();
+      await el.open(config());
+      el.reconfigure({ ...config(), historyEntityId: 'light.a' });
+      expect(el.shadowRoot!.querySelector('button.history')).not.toBeNull();
+      el.reconfigure(config());
+      expect(el.shadowRoot!.querySelector('button.history')).toBeNull();
+    });
+
+    it('closes the sheet, then navigates to the entity history on window', async () => {
+      const el = await mount();
+      await el.open({ ...config(), historyEntityId: 'climate.living room' });
+      const dlg = el.shadowRoot!.querySelector('dialog')!;
+      const log: string[] = [];
+      const state = () => `open=${el.isOpen}:dialog=${dlg.open}`;
+      const push = vi.spyOn(window.history, 'pushState').mockImplementation((_d, _t, u) => void log.push(`push ${u}:${state()}`));
+      const on = () => log.push(`event:${state()}`);
+      window.addEventListener('location-changed', on);
+      el.shadowRoot!.querySelector<HTMLButtonElement>('button.history')!.click();
+      window.removeEventListener('location-changed', on);
+      push.mockRestore();
+      expect(el.isOpen).toBe(false);
+      expect(log).toEqual([
+        'push /history?entity_id=climate.living%20room:open=false:dialog=false',
+        'event:open=false:dialog=false',
+      ]);
+    });
+
+    it('pushes the HA state shape { from: location.pathname }', async () => {
+      const el = await mount();
+      await el.open({ ...config(), historyEntityId: 'light.a' });
+      const push = vi.spyOn(window.history, 'pushState').mockImplementation(() => undefined);
+      el.shadowRoot!.querySelector<HTMLButtonElement>('button.history')!.click();
+      const [state] = push.mock.calls[0];
+      push.mockRestore();
+      expect(state).toEqual({ from: window.location.pathname });
+    });
+
+    it('keeps initial focus on Close', async () => {
+      const el = await mount();
+      await el.open({ ...config(), historyEntityId: 'light.a' });
+      expect((el.shadowRoot!.activeElement as HTMLElement | null)?.className).toBe('close');
+      expect(el.shadowRoot!.activeElement).toBe(el.shadowRoot!.querySelector('button.close'));
+    });
+
+    it('renders no button for an empty historyEntityId', async () => {
+      const el = await mount();
+      await el.open({ ...config(), historyEntityId: '' });
+      expect(el.shadowRoot!.querySelector('button.history')).toBeNull();
+    });
+
+    it('navigates to the new id after reconfigure', async () => {
+      const el = await mount();
+      await el.open({ ...config(), historyEntityId: 'light.a' });
+      el.reconfigure({ ...config(), historyEntityId: 'light.b' });
+      const push = vi.spyOn(window.history, 'pushState').mockImplementation(() => undefined);
+      el.shadowRoot!.querySelector<HTMLButtonElement>('button.history')!.click();
+      const url = push.mock.calls[0][2];
+      push.mockRestore();
+      expect(url).toBe('/history?entity_id=light.b');
+    });
+  });
+
   it('reconfigure hands the new config to the open content', async () => {
     const el = await mount();
     await el.open(config());
@@ -90,6 +168,11 @@ describe('LiquidSheetBase', () => {
     const css = (LiquidSheetBase.styles as { cssText: string }[]).map((s) => s.cssText).join('\n');
     expect(css).toMatch(/dialog\.m-minimal\[open\]\s*\{\s*animation:\s*none/);
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*dialog\[open\]\s*\{\s*animation:\s*none/);
+  });
+
+  it('the dialog sets the Liquid font stack itself', () => {
+    const css = (LiquidSheetBase.styles as { cssText: string }[]).map((s) => s.cssText).join('\n');
+    expect(css).toMatch(/dialog\s*\{[^}]*font-family:\s*'Liquid Inter'/);
   });
 
   it('a second open while open does nothing', async () => {

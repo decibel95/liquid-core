@@ -35,7 +35,7 @@ Everything is exported from the package root (`@decibel95/liquid-core`) and from
 | `render-gate` | `hassNeedsRender` | Whether a new `hass` object changes anything a card shows. |
 | `service` | `callEntityService`, `RowCalls` | Service calls with error reporting. |
 | `write-queue` | `WriteQueue`, `debounceWrites()`, `throttleWrites()`, types `WriteCall`, `WriteSchedule`, `WriteTimers`, `WriteQueueOptions` | Coalescing queue with two schedule policies: `debounce(ms)` (Liquid Climate: nothing is sent while held, one call after the delay) and `throttle(ms)` (Liquid Home: leading write, at most one per window, a final deduped write on release). |
-| `writer` | `EntityWriter`, `WriterRegistry`, `WriterLease`, types `WriterOptions`, `SharedWriter` | One shared writer per entity (`set`, `sendNow`, `discard`, `observe`): hold of sent values until HA reports them (`hold`, default 10 s), order-aware stale echo handling, error text, a ref-counted registry and a per-card lease. Parity notes for Liquid Climate are at the top of `src/writer.ts`. |
+| `writer` | `EntityWriter`, `WriterRegistry`, `WriterLease`, types `WriterOptions`, `SharedWriter` | One shared writer per entity (`set`, `sendNow`, `discard`, `observe`): hold of sent values until HA reports them (`hold`, default 10 s), order-aware stale echo handling, error text (`logLabel` prefixes the console error, default `liquid-core`), a ref-counted registry and a per-card lease. Protected hooks `reconcile`, `rollback`, `sendStarted` and `sendSettled` let a subclass keep its own semantics (see below). Parity notes for Liquid Climate are at the top of `src/writer.ts`. |
 | `types` | `HomeAssistant`, `HassEntity`, `HassArea`, `HassFloor`, `HassDevice`, `HassEntityRegistryEntry`, `LovelaceCardEditor` | The Home Assistant types the cards use. |
 
 ### Writer
@@ -56,6 +56,16 @@ this.lease.release();                      // in disconnectedCallback
 - `writer.discard()`: drop the pending change, the armed timer and the held values, so a call made through another path (a room header power call) is not undone by a trailing step. Sends already issued still land; a running drag keeps its hold.
 
 A card holds the queue through its lease, never on the writer directly: `lease.hold()` on pointerdown or the first keydown of a held key, `lease.endHold()` on pointerup or keyup, which sends the final value. With the slider that is `onStart: () => lease.hold()` and `onEnd: () => lease.endHold()`. The hold belongs to the card, so a card leaving mid-drag ends only its own hold.
+
+A product that needs other writer semantics subclasses `EntityWriter` and overrides the protected hooks; the defaults are the behaviour above:
+
+| Hook | Called | Default |
+| --- | --- | --- |
+| `reconcile(entity)` | by `observe(hass)` when the entity exists and values are in flight | Drops the in-flight values the entity caught up with (order-aware stale echoes, `matches`, `answered`). |
+| `rollback(failed)` | when a call fails on a writer not disposed, before `error` is set; `failed` is what that call and the ones after it set, in patch terms | Drops only those values; with nothing left in flight the hold timer stops. |
+| `sendStarted()`, `sendSettled()` | before the first call of a send and after it settles (failed or not), each followed by `changed()` | Count the sends in flight behind `sending`. An override calls `super`. |
+
+They read the protected `_inflight` (assign it directly to keep the per-key records), `sent` (per-key records: values sent, `seen`, `from`), `active`, `opts` and `stateOf(entity, key)`. `sending` is a getter, so a subclass overrides it with `override get sending()`, not a field.
 
 ### Chrome
 

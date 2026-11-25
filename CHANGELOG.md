@@ -5,9 +5,15 @@ All notable changes to liquid-core. The format follows [Keep a Changelog](https:
 While liquid-core is 0.x, a minor bump marks any visual change (a token value, a style, an icon path) or an API break, and a patch bump marks non-visual fixes only. Every visual change is listed under `### Changed` with the token name and the old and new value.
 
 <!-- #region entries -->
-## 0.2.0
+## 0.3.0
 
 The current version.
+
+### Added
+- `EntityWriter` extension points for a product that keeps its own writer semantics. `observe()` keeps its guard and calls the protected `reconcile(entity)` (the stale-echo loop); a failed call calls the protected `rollback(failed)` with what the failed call and the ones after it set, before the error is set; a send calls the protected `sendStarted()` and `sendSettled()` around its calls, each followed by `changed()`. `sending` stays an overridable getter. The state these read is now protected: `_inflight`, `sent`, `active`, `opts` and `stateOf()`; the `inflight` accessors stay public. The defaults are the 0.2.0 code, so nothing changes for a writer that overrides nothing.
+- `WriterOptions.logLabel`: the prefix of the console error logged when a service call fails, default `liquid-core` (the 0.2.0 text).
+
+## 0.2.0
 
 ### Added
 - Products can now ship the Inter font and load it with `ensureLiquidFont(url)`, so cards look the same on every system. The font is `fonts/liquid-inter.woff2` (43 KB, family `Liquid Inter`); the SIL Open Font License 1.1 text is `fonts/OFL.txt`, and products must ship it with the font.

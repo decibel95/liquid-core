@@ -1,6 +1,6 @@
 {
   "name": "@decibel95/liquid-core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Shared glass design tokens, colour and write helpers for the Liquid Climate and Liquid Home card sets",
   "license": "MIT",
   "type": "module",

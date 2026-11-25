@@ -42,6 +42,8 @@ export interface WriterOptions<P extends object, C extends WriteCall<P>> {
   t?: (hass: HomeAssistant, key: string) => string;
   /** Key passed to `t` for that error. Default `common.commandFailed`. */
   errorKey?: string;
+  /** Prefix of the service-call-failed console error. Default `liquid-core`. */
+  logLabel?: string;
 }
 
 /** Equal values, arrays compared item by item (hs_color). */
@@ -67,13 +69,13 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
   schedule: WriteSchedule;
   /** Seconds a sent value is held as shown while the entity has not reported it back; the card that interacts sets it. */
   hold: number;
-  private _inflight = {} as P;
+  protected _inflight = {} as P;
   error: string | null = null;
   /**
    * Sends not yet settled. Debounced sends can overlap; throttled ones only when one timed out (see
    * WriteQueueOptions.sendTimeoutMs) and is still unanswered.
    */
-  private active = 0;
+  protected active = 0;
   /** The owners (card leases) holding the queue for a drag or a held key; the queue is held while any remain. */
   private holders = new Set<object>();
   /** The hold expired while a throttled send was in flight: clear when the queue is idle, it still builds against it. */
@@ -84,7 +86,7 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
    * A newly reported value equal to an older send drops it and what came before, but keeps the newest held. A report
    * that leaves the key's value unchanged is not an echo at all, so it ends nothing.
    */
-  private sent = new Map<string, { values: unknown[]; seen?: unknown; from?: string }>();
+  protected sent = new Map<string, { values: unknown[]; seen?: unknown; from?: string }>();
   private disposed = false;
   private inflightTimer?: ReturnType<typeof setTimeout>;
   private errorTimer?: ReturnType<typeof setTimeout>;
@@ -92,7 +94,7 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
 
   constructor(
     readonly entityId: string,
-    private readonly opts: WriterOptions<P, C>,
+    protected readonly opts: WriterOptions<P, C>,
   ) {
     this.schedule = opts.schedule;
     this.hold = opts.hold ?? 10;
@@ -138,7 +140,7 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
     this.sent.clear();
   }
 
-  private stateOf(e: HassEntity, key: string): unknown {
+  protected stateOf(e: HassEntity, key: string): unknown {
     return this.opts.stateOf ? this.opts.stateOf(e, key) : e.attributes[key];
   }
 
@@ -193,6 +195,11 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
     this.hass = hass;
     const s = this.entity();
     if (!s || !Object.keys(this._inflight).length) return;
+    this.reconcile(s);
+  }
+
+  /** Hook: drops the in-flight values `s` caught up with; `observe` calls it while any are in flight. */
+  protected reconcile(s: HassEntity): void {
     const matches = this.opts.matches ?? ((_k: string, actual: unknown, sent: unknown) => same(actual, sent));
     const next = { ...this._inflight } as Record<string, unknown>;
     for (const key of Object.keys(next)) {
@@ -274,7 +281,7 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
   private async send(calls: Omit<C, 'sets'>[], sets: Record<string, unknown>[]): Promise<void> {
     const hass = this.hass;
     if (!hass) return;
-    this.active++;
+    this.sendStarted();
     this.changed();
     let i = 0;
     try {
@@ -283,26 +290,9 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
         await hass.callService(c.domain ?? this.entityId.split('.')[0], c.service, c.data);
       }
     } catch (err) {
-      console.error('liquid-core: service call failed', err);
+      console.error(`${this.opts.logLabel ?? 'liquid-core'}: service call failed`, err);
       if (this.disposed) return;
-      // The failed call and the ones after it never landed: drop only their values. A key still has its earlier sends
-      // held (the newest of them shown); it goes when none is left.
-      const next = { ...this._inflight } as Record<string, unknown>;
-      for (const set of sets.slice(i)) {
-        for (const [key, value] of Object.entries(set)) {
-          const rec = this.sent.get(key);
-          let at = rec ? rec.values.length - 1 : -1;
-          while (at >= 0 && !same(rec!.values[at], value)) at--;
-          if (at >= 0) rec!.values.splice(at, 1);
-          if (rec?.values.length) next[key] = rec.values[rec.values.length - 1];
-          else {
-            delete next[key];
-            this.sent.delete(key);
-          }
-        }
-      }
-      this._inflight = next as P;
-      if (!Object.keys(next).length) clearTimeout(this.inflightTimer);
+      this.rollback(sets.slice(i));
       this.error = err instanceof Error && err.message ? err.message : (this.opts.t?.(hass, this.opts.errorKey ?? 'common.commandFailed') ?? 'Command failed');
       clearTimeout(this.errorTimer);
       this.errorTimer = setTimeout(() => {
@@ -310,9 +300,42 @@ export class EntityWriter<P extends object, C extends WriteCall<P> = WriteCall<P
         this.changed();
       }, ERROR_MS);
     } finally {
-      this.active--;
+      this.sendSettled();
       this.changed();
     }
+  }
+
+  /** Hook: a send starts, `changed()` follows. An override calls super. */
+  protected sendStarted(): void {
+    this.active++;
+  }
+
+  /** Hook: a send settled (failed or not), `changed()` follows. An override calls super. */
+  protected sendSettled(): void {
+    this.active--;
+  }
+
+  /**
+   * Hook: a call failed (writer not disposed), before `error` is set. `failed` is what it and the later calls set. Drops
+   * only those values; a key keeps its earlier sends held. With nothing left in flight the hold timer stops.
+   */
+  protected rollback(failed: Record<string, unknown>[]): void {
+    const next = { ...this._inflight } as Record<string, unknown>;
+    for (const set of failed) {
+      for (const [key, value] of Object.entries(set)) {
+        const rec = this.sent.get(key);
+        let at = rec ? rec.values.length - 1 : -1;
+        while (at >= 0 && !same(rec!.values[at], value)) at--;
+        if (at >= 0) rec!.values.splice(at, 1);
+        if (rec?.values.length) next[key] = rec.values[rec.values.length - 1];
+        else {
+          delete next[key];
+          this.sent.delete(key);
+        }
+      }
+    }
+    this._inflight = next as P;
+    if (!Object.keys(next).length) clearTimeout(this.inflightTimer);
   }
 }
 

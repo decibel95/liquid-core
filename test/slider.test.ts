@@ -356,6 +356,142 @@ describe('keyboard (CHO-8)', () => {
   });
 });
 
+describe('keyStep (Q4: the fan steps by percentage_step)', () => {
+  // A 20-speed fan (percentage_step 5) per Q4: arrows one step, Page Up/Down max(1, round(10 / step)) steps,
+  // Home the lowest step, End 100, Down from the lowest step to 0 (off).
+  const STEP = 5;
+  const PAGE = Math.max(1, Math.round(10 / STEP)) * STEP;
+  const fanKeys = (cur: number, key: string): number | undefined =>
+    ({
+      ArrowUp: Math.min(100, cur + STEP),
+      ArrowRight: Math.min(100, cur + STEP),
+      ArrowDown: Math.max(0, cur - STEP),
+      ArrowLeft: Math.max(0, cur - STEP),
+      PageUp: Math.min(100, cur + PAGE),
+      PageDown: cur === 0 ? 0 : Math.max(STEP, cur - PAGE),
+      Home: STEP,
+      End: 100,
+    })[key];
+  const table: [number, string, number][] = [
+    [40, 'ArrowUp', 45],
+    [40, 'ArrowRight', 45],
+    [40, 'ArrowDown', 35],
+    [40, 'ArrowLeft', 35],
+    [40, 'PageUp', 50],
+    [40, 'PageDown', 30],
+    [40, 'Home', 5],
+    [40, 'End', 100],
+    [5, 'ArrowDown', 0], // Down from the lowest step turns off
+  ];
+  for (const [state, k, expected] of table) {
+    it(`level ${state} % + ${k} => ${expected} through keyStep`, async () => {
+      const keyStep = vi.fn(fanKeys);
+      const el = await mount({ value: state, keyStep });
+      await key(el, k);
+      expect(keyStep).toHaveBeenCalledWith(state, k);
+      expect(of(el, 'preview')).toEqual([['preview', expected, 'key']]);
+      expect(of(el, 'end')).toEqual([['end', expected, 'key']]);
+    });
+  }
+
+  it('held keys step from the previous keyStep output', async () => {
+    const el = await mount({ value: 40, keyStep: fanKeys });
+    await key(el, 'ArrowUp', false);
+    await key(el, 'ArrowUp', false);
+    await key(el, 'PageUp', false);
+    expect(of(el, 'preview').map((c) => c[1])).toEqual([45, 50, 60]);
+    pill(el).dispatchEvent(new KeyboardEvent('keyup', { key: 'PageUp', bubbles: true }));
+    expect(of(el, 'end')).toEqual([['end', 60, 'key']]);
+  });
+
+  it('undefined falls back to SliderController.step()', async () => {
+    const keyStep = (_cur: number, k: string) => (k === 'ArrowUp' ? 60 : undefined);
+    for (const [k, expected] of [
+      ['ArrowUp', 60],
+      ['PageUp', 50],
+      ['Home', 1],
+      ['End', 100],
+    ] as const) {
+      const el = await mount({ value: 40, keyStep });
+      await key(el, k);
+      expect(of(el, 'preview')).toEqual([['preview', expected, 'key']]);
+    }
+  });
+
+  it('the toggle kind ignores it: Space toggles, arrows do nothing', async () => {
+    const keyStep = vi.fn(() => 50);
+    const el = await mount({ kind: 'toggle', label: 'Entrance', keyStep });
+    await key(el, 'ArrowUp');
+    await key(el, ' ');
+    expect(keyStep).not.toHaveBeenCalled();
+    expect(el.calls).toEqual([['toggle', false]]);
+  });
+});
+
+describe('snap (Q8: the read-out follows the fan speed, the fill follows the finger)', () => {
+  // A 3-speed fan: the nearest of 0, 33.3, 66.7 and 100.
+  const third = 100 / 3;
+  const snap3 = (v: number) => Math.round(v / third) * third;
+
+  it('aria values are snapped, the fill is not', async () => {
+    const el = await mount({ value: 60, snap: snap3 });
+    expect([attr(el, 'aria-valuenow'), attr(el, 'aria-valuetext')]).toEqual(['67', '67%']);
+    expect(fill(el).style.height).toBe('60%');
+  });
+
+  it('snap runs before valueText, which gets the snapped value', async () => {
+    const valueText = vi.fn((v: number) => `speed ${v}`);
+    const el = await mount({ value: 60, snap: snap3, valueText });
+    expect(valueText).toHaveBeenCalledWith(67);
+    expect(valueText).not.toHaveBeenCalledWith(60);
+    expect(attr(el, 'aria-valuetext')).toBe('speed 67');
+  });
+
+  it('level: a snapped 0 reads off (valuenow 0, "Off"), never 0 %, and valueText is not asked', async () => {
+    const valueText = vi.fn((v: number) => `speed ${v}`);
+    const el = await mount({ value: 10, snap: snap3, valueText });
+    expect([attr(el, 'aria-valuenow'), attr(el, 'aria-valuetext')]).toEqual(['0', 'Off']);
+    expect(fill(el).style.height).toBe('10%');
+    expect(valueText).not.toHaveBeenCalled();
+  });
+
+  it('level: dragged to 10 % on a 3-speed snap, the preview and fill are 10 % while aria reads Off', async () => {
+    const el = await mount({ value: 40, snap: snap3 });
+    pointer(el, 'pointerdown', 100);
+    pointer(el, 'pointermove', 100 + 84); // 30 % down from the grab point
+    await el.updateComplete;
+    expect(of(el, 'preview').at(-1)).toEqual(['preview', 10, 'pointer']);
+    expect(fill(el).style.height).toBe('10%');
+    expect([attr(el, 'aria-valuenow'), attr(el, 'aria-valuetext')]).toEqual(['0', 'Off']);
+    pointer(el, 'pointermove', 100 + 28); // 30 %, snaps to 33.3
+    await el.updateComplete;
+    expect(fill(el).style.height).toBe('30%');
+    expect([attr(el, 'aria-valuenow'), attr(el, 'aria-valuetext')]).toEqual(['33', '33%']);
+  });
+
+  it('position: snapped value, no off rule', async () => {
+    const el = await mount({ kind: 'position', value: 10, snap: snap3, valueText: (v) => `p${v}` });
+    expect([attr(el, 'aria-valuenow'), attr(el, 'aria-valuetext')]).toEqual(['0', 'p0']);
+    expect(fill(el).style.height).toBe('10%');
+  });
+
+  it('unset keeps today\'s output: a level just above 0 reads 1 %, where a snap to 0 reads Off', async () => {
+    const plain = await mount({ value: 0.2 });
+    expect([attr(plain, 'aria-valuenow'), attr(plain, 'aria-valuetext')]).toEqual(['1', '1%']);
+    const snapped = await mount({ value: 0.2, snap: () => 0 });
+    expect([attr(snapped, 'aria-valuenow'), attr(snapped, 'aria-valuetext')]).toEqual(['0', 'Off']);
+    const unset = await mount({ value: 60, snap: undefined });
+    expect(pill(unset).outerHTML).toBe(pill(await mount({ value: 60 })).outerHTML);
+  });
+
+  it('off and unavailable win over the snap', async () => {
+    const off = await mount({ on: false, value: 70, snap: snap3 });
+    expect([attr(off, 'aria-valuenow'), attr(off, 'aria-valuetext')]).toEqual(['0', 'Off']);
+    const na = await mount({ available: false, value: 70, snap: snap3 });
+    expect(attr(na, 'aria-valuetext')).toBe('Unavailable');
+  });
+});
+
 describe('motion (TOK-10, plan 2.9)', () => {
   it('the fill eases height and colour over 0.8 s', () => {
     expect(sliderStyles.cssText).toMatch(/transition: height 800ms ease, background-color 800ms ease;/);

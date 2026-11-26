@@ -1,10 +1,11 @@
 // Line icons. The first 24 entries are copied from Liquid Climate 0.11.1 (src/ui/modes.ts, commit 373b340),
-// byte-identical (test/parity.test.ts). The entries after them are the gate 1 icons ICO-1 to ICO-3.
+// byte-identical (test/parity.test.ts). The entries after them are the gate 1 icons ICO-1 to ICO-3, history,
+// and the Liquid Home 0.3 icons (P2-ICO-1 to 5 and blinds, ICO-4).
 // One style: 24 viewBox, fill none, stroke currentColor, round caps and joins; each value is the `d` of one path.
-// ICO-1 to ICO-3 (and flame, fan, door-open) are lucide-static 0.460.0; the other entries are as Liquid Climate
+// Every entry after the first 24 (and flame, fan, door-open) is lucide-static 0.460.0; the others are as Liquid Climate
 // 0.11.1 ships them. Lucide is ISC licensed: the licence notice ships in NOTICE (ICO-11).
 // New Lucide icons are written as in the Liquid Climate entries: the <path> elements joined with a space,
-// a leading relative moveto written absolute, circles as two arcs.
+// a leading relative moveto written absolute, circles as two arcs, a rounded rect as one closed path.
 
 export const ICONS = {
   power: 'M12 2v10 M18.4 6.6a9 9 0 1 1-12.77.04',
@@ -41,4 +42,11 @@ export const ICONS = {
   rainbow: 'M22 17a10 10 0 0 0-20 0 M6 17a6 6 0 0 1 12 0 M10 17a2 2 0 0 1 4 0',
   /** Lucide history (lucide-static 0.460.0, icons/history.svg): the history button in a sheet header. */
   history: 'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8 M3 3v5h5 M12 7v5l4 2',
+  /** P2-ICO-1 to 5 and ICO-4 (lucide-static 0.460.0): cover actions, tilt mode, fan direction, blinds. */
+  blinds: 'M3 3h18 M20 7H8 M20 11H8 M10 19h10 M8 15h12 M4 3v14 M4 17a2 2 0 1 0 0 4 2 2 0 1 0 0-4z',
+  chevronUp: 'M18 15l-6-6-6 6',
+  chevronDown: 'M6 9l6 6 6-6',
+  stop: 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z',
+  rotateCw: 'M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8 M21 3v5h-5',
+  moveDiagonal: 'M11 19H5v-6 M13 5h6v6 M19 5 5 19',
 } as const;

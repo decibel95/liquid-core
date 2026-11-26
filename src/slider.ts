@@ -54,6 +54,13 @@ export interface SliderView {
   label: string;
   /** aria-valuetext for a value while on. Required in spirit for `position` (kelvin, colour position); `level` defaults to the core percent text. */
   valueText?: (value: number) => string;
+  /** The next value for a handled key from `cur`; undefined falls back to SliderController.step(). Ignored by `toggle`. */
+  keyStep?: (cur: number, key: string) => number | undefined;
+  /**
+   * Maps the value read out by aria-valuenow and aria-valuetext (the fill still follows the finger). Runs before
+   * `valueText`. On `level` a snapped 0 reads as off. Unset: the value as is.
+   */
+  snap?: (value: number) => number;
   /** Pill height in px, default TOK-2 280, never below 200. */
   height?: number;
   /** The card's look.motion. `minimal` removes the fill transition, as reduced motion does. */
@@ -274,7 +281,7 @@ export class SliderController implements ReactiveController {
     if (!KEYS_LEVEL.includes(e.key) || this.drag) return;
     const shown = this.shown(v);
     const cur = v.kind === 'level' ? levelPercent(shown.value, shown.on) : Math.round(shown.value);
-    const next = SliderController.step(v.kind, e.key, cur) as number;
+    const next = (v.keyStep?.(cur, e.key) ?? SliderController.step(v.kind, e.key, cur)) as number;
     e.preventDefault();
     if (!this.key) {
       this.key = { start: cur, last: cur, moved: false };
@@ -367,10 +374,13 @@ export function renderSlider(c: SliderController, view: SliderView): TemplateRes
   let valueNow: number | undefined;
   let valueText: string | undefined;
   if (!toggle) {
-    valueNow = view.kind === 'level' ? levelPercent(value, on) : on ? Math.round(value) : 0;
+    // snap maps the read-out value only (the fill stays unsnapped); on `level` a snapped 0 is off.
+    const sv = view.snap ? view.snap(value) : value;
+    const off = !on || (!!view.snap && view.kind === 'level' && sv === 0);
+    valueNow = view.kind === 'level' ? levelPercent(sv, !off) : off ? 0 : Math.round(sv);
     valueText = !available
       ? t(view.hass, 'core.unavailable')
-      : !on
+      : off
         ? t(view.hass, 'core.off')
         : (view.valueText?.(valueNow) ?? t(view.hass, 'core.percent', { value: valueNow }));
   }

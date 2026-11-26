@@ -5,9 +5,16 @@ All notable changes to liquid-core. The format follows [Keep a Changelog](https:
 While liquid-core is 0.x, a minor bump marks any visual change (a token value, a style, an icon path) or an API break, and a patch bump marks non-visual fixes only. Every visual change is listed under `### Changed` with the token name and the old and new value.
 
 <!-- #region entries -->
-## 0.3.0
+## 0.4.0
 
 The current version.
+
+### Added
+- Six line icons for covers and fans in `ICONS`, all Lucide 0.460.0 in the existing line style, appended after `history` so the existing entries are unchanged: `blinds` (cover), `chevronUp` (open), `chevronDown` (close), `stop` (stop, Lucide `square` written as one path), `rotateCw` (fan direction) and `moveDiagonal` (tilt mode).
+- `SliderView.keyStep(cur, key)`: optional, returns the next value for a handled key; `undefined` falls back to the CHO-8 steps of `SliderController.step()`. The `toggle` kind ignores it. Without it the keys behave as in 0.3.0.
+- `SliderView.snap(value)`: optional, maps the value that `aria-valuenow` and `aria-valuetext` read out (for example to the speeds of a fan); the fill still follows the pointer. It runs before `valueText`, and on the `level` kind a snapped 0 reads as off (`aria-valuenow` 0, `core.off`). Without it the output is as in 0.3.0.
+
+## 0.3.0
 
 ### Added
 - `EntityWriter` extension points for a product that keeps its own writer semantics. `observe()` keeps its guard and calls the protected `reconcile(entity)` (the stale-echo loop); a failed call calls the protected `rollback(failed)` with what the failed call and the ones after it set, before the error is set; a send calls the protected `sendStarted()` and `sendSettled()` around its calls, each followed by `changed()`. `sending` stays an overridable getter. The state these read is now protected: `_inflight`, `sent`, `active`, `opts` and `stateOf()`; the `inflight` accessors stay public. The defaults are the 0.2.0 code, so nothing changes for a writer that overrides nothing.

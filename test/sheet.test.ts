@@ -26,6 +26,15 @@ class TestSheet extends LiquidSheetBase {
 }
 customElements.define('test-sheet', TestSheet);
 
+// A sheet with one extra header toggle whose pressed state follows hass.
+class ActSheet extends TestSheet {
+  protected override headerActions(): unknown {
+    const on = this.hass?.states['light.a']?.state === 'on';
+    return html`<button class="act" slot="header-action" aria-pressed=${on ? 'true' : 'false'}></button>`;
+  }
+}
+customElements.define('test-sheet-act', ActSheet);
+
 const hass = { language: 'nl', states: { 'light.a': { entity_id: 'light.a', state: 'on', attributes: { friendly_name: 'Lamp' } } }, themes: { darkMode: true } } as unknown as HomeAssistant;
 const config = (motion?: 'rich' | 'minimal'): SheetConfig => ({ entity: 'light.a', look: { glass: 'theme', motion } });
 
@@ -69,6 +78,61 @@ describe('LiquidSheetBase', () => {
     await el.updateComplete;
     expect(el.isOpen).toBe(false);
     expect(el.shadowRoot!.querySelector('test-sheet-content')).toBeNull();
+  });
+
+  describe('headerActions hook', () => {
+    const mountAct = async () => {
+      const el = document.createElement('test-sheet-act') as ActSheet;
+      el.hass = hass;
+      document.body.append(el);
+      await el.updateComplete;
+      return el;
+    };
+
+    it('renders before History and Close', async () => {
+      const el = await mountAct();
+      await el.open({ ...config(), historyEntityId: 'light.a' });
+      const btns = [...el.shadowRoot!.querySelectorAll('test-sheet-content > button')];
+      expect(btns.map((b) => b.className)).toEqual(['act', 'history', 'close']);
+      expect(btns[0].getAttribute('slot')).toBe('header-action');
+      el.close();
+      el.remove();
+    });
+
+    it('re-renders when hass changes while open, keeping the same element and its focus', async () => {
+      const el = await mountAct();
+      await el.open(config());
+      const act = el.shadowRoot!.querySelector<HTMLButtonElement>('button.act')!;
+      expect(act.getAttribute('aria-pressed')).toBe('true');
+      act.focus();
+      el.hass = { ...hass, states: { 'light.a': { ...hass.states['light.a'], state: 'off' } } } as unknown as HomeAssistant;
+      await el.updateComplete;
+      const after = el.shadowRoot!.querySelector<HTMLButtonElement>('button.act')!;
+      expect(after).toBe(act);
+      expect(after.getAttribute('aria-pressed')).toBe('false');
+      expect(el.shadowRoot!.activeElement).toBe(act);
+      el.close();
+      el.remove();
+    });
+
+    it('does not call headerActions on a hass change after close', async () => {
+      const el = await mountAct();
+      const spy = vi.spyOn(el as unknown as { headerActions: () => unknown }, 'headerActions');
+      await el.open(config());
+      el.close();
+      const calls = spy.mock.calls.length;
+      el.hass = { ...hass } as HomeAssistant;
+      await el.updateComplete;
+      expect(spy.mock.calls.length).toBe(calls);
+      el.remove();
+    });
+
+    it('renders nothing by default', async () => {
+      const el = await mount();
+      await el.open(config());
+      expect(el.shadowRoot!.querySelector('button.act')).toBeNull();
+      expect([...el.shadowRoot!.querySelectorAll('test-sheet-content > button')].map((b) => b.className)).toEqual(['close']);
+    });
   });
 
   describe('history button', () => {
@@ -181,6 +245,159 @@ describe('LiquidSheetBase', () => {
     const first = el.shadowRoot!.querySelector('test-sheet-content');
     await el.open(config());
     expect(el.shadowRoot!.querySelector('test-sheet-content')).toBe(first);
+  });
+
+  it('close() while open() is still awaiting leaves no dialog open', async () => {
+    const el = await mount();
+    const opening = el.open(config());
+    el.close();
+    await opening;
+    await el.updateComplete;
+    expect(el.isOpen).toBe(false);
+    expect(el.shadowRoot!.querySelector('dialog')!.open).toBe(false);
+    expect(el.shadowRoot!.querySelector('test-sheet-content')).toBeNull();
+  });
+
+  it('a late native close event after close() and a reopen leaves the new content and the dialog open', async () => {
+    const el = await mount();
+    await el.open(config());
+    el.close();
+    await el.open(config());
+    const content = el.shadowRoot!.querySelector('test-sheet-content');
+    const dialog = el.shadowRoot!.querySelector('dialog')!;
+    expect(dialog.open).toBe(true);
+    // The close event of the first close, queued as a task in a real browser, arrives after showModal().
+    dialog.dispatchEvent(new Event('close'));
+    await el.updateComplete;
+    expect(el.isOpen).toBe(true);
+    expect(dialog.open).toBe(true);
+    expect(el.shadowRoot!.querySelector('test-sheet-content')).toBe(content);
+  });
+
+  describe('requestActions', () => {
+    class ReqSheet extends TestSheet {
+      pressed = false;
+      protected override headerActions(): unknown {
+        return html`<button class="act" slot="header-action" aria-pressed=${this.pressed ? 'true' : 'false'}></button>`;
+      }
+      request(): void {
+        this.requestActions();
+      }
+    }
+    customElements.define('test-sheet-req', ReqSheet);
+    const mountReq = async () => {
+      const el = document.createElement('test-sheet-req') as ReqSheet;
+      el.hass = hass;
+      document.body.append(el);
+      await el.updateComplete;
+      return el;
+    };
+
+    it('re-renders the header actions into the same nodes without a hass change', async () => {
+      const el = await mountReq();
+      await el.open(config());
+      const act = el.shadowRoot!.querySelector<HTMLButtonElement>('button.act')!;
+      const close = el.shadowRoot!.querySelector<HTMLButtonElement>('button.close')!;
+      expect(act.getAttribute('aria-pressed')).toBe('false');
+      act.focus();
+      el.pressed = true;
+      el.request();
+      expect(el.shadowRoot!.querySelector('button.act')).toBe(act);
+      expect(el.shadowRoot!.querySelector('button.close')).toBe(close);
+      expect(act.getAttribute('aria-pressed')).toBe('true');
+      expect(el.shadowRoot!.activeElement).toBe(act);
+      el.close();
+      el.remove();
+    });
+
+    it('does nothing while closed', async () => {
+      const el = await mountReq();
+      const spy = vi.spyOn(el as unknown as { headerActions: () => unknown }, 'headerActions');
+      el.request();
+      await el.open(config());
+      el.close();
+      spy.mockClear();
+      el.request();
+      expect(spy).not.toHaveBeenCalled();
+      el.remove();
+    });
+  });
+
+  describe('onClosed hook', () => {
+    class HookSheet extends TestSheet {
+      closed = 0;
+      contentAtClose: boolean | undefined;
+      protected override onClosed(): void {
+        this.closed++;
+        this.contentAtClose = this.isOpen;
+      }
+    }
+    customElements.define('test-sheet-hook', HookSheet);
+    const mountHook = async () => {
+      const el = document.createElement('test-sheet-hook') as HookSheet;
+      el.hass = hass;
+      document.body.append(el);
+      await el.updateComplete;
+      return el;
+    };
+
+    it('fires once for close(), after the content is removed, also when the native close event follows', async () => {
+      const el = await mountHook();
+      await el.open(config());
+      expect(el.closed).toBe(0);
+      el.close();
+      expect(el.closed).toBe(1);
+      expect(el.contentAtClose).toBe(false);
+      el.shadowRoot!.querySelector('dialog')!.dispatchEvent(new Event('close'));
+      el.close();
+      await el.updateComplete;
+      expect(el.closed).toBe(1);
+      el.remove();
+    });
+
+    it('fires once for a native close of the dialog', async () => {
+      const el = await mountHook();
+      await el.open(config());
+      const dialog = el.shadowRoot!.querySelector('dialog')!;
+      dialog.close();
+      await el.updateComplete;
+      expect(el.isOpen).toBe(false);
+      expect(el.closed).toBe(1);
+      expect(el.contentAtClose).toBe(false);
+      dialog.dispatchEvent(new Event('close'));
+      el.close();
+      expect(el.closed).toBe(1);
+      el.remove();
+    });
+
+    it('does not fire for a late close event that arrives while the sheet is open again', async () => {
+      const el = await mountHook();
+      await el.open(config());
+      el.close();
+      await el.open(config());
+      el.shadowRoot!.querySelector('dialog')!.dispatchEvent(new Event('close'));
+      expect(el.closed).toBe(1);
+      expect(el.isOpen).toBe(true);
+      el.close();
+      expect(el.closed).toBe(2);
+      el.remove();
+    });
+
+    it('fires once when the sheet is removed while open, and not when closed; focus does not go to returnTo', async () => {
+      const el = await mountHook();
+      el.remove();
+      expect(el.closed).toBe(0);
+      document.body.append(el);
+      await el.updateComplete;
+      const returnTo = document.createElement('button');
+      document.body.append(returnTo);
+      await el.open(config(), returnTo);
+      el.remove();
+      expect(el.closed).toBe(1);
+      expect(el.isOpen).toBe(false);
+      expect(document.activeElement).not.toBe(returnTo);
+      returnTo.remove();
+    });
   });
 });
 

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>liquid-core artwork harness</title>
+    <style>
+      /* Page grounds as dev/slider.html (CHO-14). Harness only, not shipped. */
+      body { margin: 0; -webkit-font-smoothing: antialiased; font-feature-settings: 'tnum' 1; background: #0b0e14; color: #f4f6fa; }
+      .ground { padding: 24px 16px; }
+      .ground.dark { background: #0b0e14; color: #f4f6fa; }
+      .ground.light { background: #e7e9ee; color: #10141b; }
+      h1 { font-size: 15px; font-weight: 600; margin: 0; padding: 24px 16px 0; }
+      h2 { font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+      section { margin-bottom: 8px; }
+      .cap { font-size: 12px; opacity: 0.7; margin: 0 0 8px; }
+      .row { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+      .ctl { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; font-size: 12px; }
+      .ctl button, .ctl select { font: inherit; }
+    </style>
+  </head>
+  <body>
+    <h1>liquid-core artwork backdrop (P3-TOK-1 to 4, GD5)</h1>
+    <p class="cap" style="padding: 0 16px" id="bf">backdrop-filter elements per host: measuring</p>
+    <div class="ground dark">
+      <section id="covers-dark"><h2>Six covers, dark glass (no scrim)</h2><div class="row"></div></section>
+      <section id="tiles-dark"><h2>Tile, radius 26</h2><div class="row"></div></section>
+      <section id="states-dark"><h2>Fallback, broken URL, slow URL (3 s cap)</h2><div class="row"></div></section>
+    </div>
+    <div class="ground light">
+      <section id="covers-light"><h2>Six covers, light glass (scrim rgba(248,249,252,0.9) inside the art layer)</h2><div class="row"></div></section>
+      <section id="tiles-light"><h2>Tile, radius 26</h2><div class="row"></div></section>
+      <section id="states-light"><h2>Fallback, broken URL, slow URL (3 s cap)</h2><div class="row"></div></section>
+    </div>
+    <div class="ground dark">
+      <section id="fade">
+        <h2>Crossfade (ART.fade 800 ms ease; instant under reduced motion or minimal)</h2>
+        <div class="ctl">
+          <button id="next" type="button">Next cover</button>
+          <button id="clear" type="button">No art</button>
+          <label>look.motion <select id="motion"><option>rich</option><option>subtle</option><option>minimal</option></select></label>
+        </div>
+        <div class="row"><div class="ground dark" id="fade-slot-dark"></div><div class="ground light" id="fade-slot-light"></div></div>
+      </section>
+    </div>
+    <script type="module" src="./artwork.ts"></script>
+  </body>
+</html>

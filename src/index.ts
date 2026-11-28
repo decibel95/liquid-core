@@ -1,5 +1,6 @@
 // Public entry of @decibel95/liquid-core. Only the core owner edits this file.
 // liquid-core registers no custom elements: products define their own prefixed tags.
+export * from './artwork';
 export * from './chrome';
 export * from './colour';
 export * from './editor';

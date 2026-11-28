@@ -21,14 +21,16 @@ Everything is exported from the package root (`@decibel95/liquid-core`) and from
 | `glass-styles` | `glassTokens` | The `.g-dark` / `.g-light` custom properties (`--lc-*`), the light rim and the line icon style. |
 | `palette` | `PALETTE`, `STATUS_COLORS`, `TINT`, `LIGHT_TONES`, `tone()`, `rgba()` | Mode colours as hex, status colours, tint levels and the light glass tones. |
 | `colour` | `entityColour()`, `isNeutral()`, `glassGround()`, `spectrumStops()`, `kelvinToRgb()`, `hsvToRgb()`, `rgbToHex()`, `toOklch()`, `fromOklch()`, `clampChroma()`, types `EntityColour`, `EntityColourOptions`, `Oklch` | entity-colour (decision 6): a lamp colour kept at 3:1 against the glass base and the slider track, or the neutral. `entityColour(rgb, glass)` returns `{ hex, neutral, ok }`. |
-| `tokens` | `SLIDER`, `FOCUS`, `READOUT`, `ENTITY`, `ART`, `SPECTRUM`, `PILL_MODES`, `THEME_VARS`, `DISABLED_OPACITY`, `UNAVAILABLE_POWER_OPACITY` | The named tokens approved at gate 1 and the shared state values (table below). |
+| `artwork` | `ArtworkController`, `renderArtwork()`, `artworkStyles`, type `ArtworkLayer` | The artwork backdrop of a media card: one blurred cover layer under the glass. `ArtworkController` (one per host; `set(url)` from `willUpdate`) loads only while the host is in view, keeps the old cover until the new one is decoded, and falls back to plain glass on an empty URL, a decode error or after `ART.decodeCap`. `renderArtwork(ctrl, { motion })` is the layer template (instant under reduced motion), `artworkStyles` its CSS. |
+| `tokens` | `SLIDER` (including `horizontal` and `ticker`), `FOCUS`, `READOUT`, `ENTITY`, `ART` (including `fade`, `decodeCap` and `scrimLight`), `SPECTRUM`, `PILL_MODES`, `THEME_VARS`, `DISABLED_OPACITY`, `UNAVAILABLE_POWER_OPACITY` | The named tokens approved at gate 1 and the shared state values (table below). |
 | `chrome` | `dialChrome`, `tileChrome`, `badgeChrome`, `clusterChrome` (alias `clusterStyles`), `clusterRoomLayout`, `DIAL`, `TILE`, `BADGE`, `CLUSTER`, `CLUSTER_ICON`, `CHEVRON` | Card chrome copied from Liquid Climate 0.11.1: the glass card, header, buttons, chips, tile row, badge and cluster layouts, see below. |
-| `icons` | `ICONS` | Stroke line icon paths (Lucide 0.460.0 style), including `bulb`, `sun`, `rainbow` and `history`, and for covers and fans `blinds`, `chevronUp`, `chevronDown`, `stop`, `rotateCw` and `moveDiagonal`. |
+| `chrome` (menu) | `menuStyles`, `MENU`, `MENU_CHECK` | The inline menu rows of the Liquid Climate sheet menu (`src/ui/menu.ts`), for a choice list inside the card's glass: `.mpanel` (radius 16, padding 6, gap 6), `.mhead` (12 / 600), `.mgroup` (rows 2 apart), `.mitem` (44 high, radius 12, text 13; a `radio` or `menuitemradio` row with `aria-checked='true'` gets `--lc-menu-pill-on` with an inset `--lc-btn-on-edge` and shows its check), `.mlabel` (two lines), `svg.mcheck` (16, stroke 2.4, path `MENU_CHECK`). Rows carry their own focus ring, the climate menu ring: 2px `--lc-bright` inside the row (offset -2). |
+| `icons` | `ICONS` | Stroke line icon paths (Lucide 0.460.0 style), including `bulb`, `sun`, `rainbow` and `history`, for covers and fans `blinds`, `chevronUp`, `chevronDown`, `stop`, `rotateCw` and `moveDiagonal`, and for media `speaker`, `play`, `pause`, `skipForward`, `volumeX`, `shuffle`, `repeat` and `repeat1`. |
 | `focus` | `focusRing` | The focus ring stylesheet (TOK-19). |
 | `font` | `ensureLiquidFont(url)`, `LIQUID_FONT_FAMILY`, `LIQUID_FONT_STACK`, `LIQUID_FONT_FILE`, `LIQUID_FONT_UNICODE_RANGE`, `LIQUID_FONT_STYLE_ID` | The shipped Inter font (`fonts/liquid-inter.woff2`, family `Liquid Inter`) and the font stack of the chrome, see below. |
-| `slider` | `SliderController`, `renderSlider()`, `sliderStyles`, `levelPercent()`, `brightnessPercent()`, `spectrumGradient()`, types `SliderView`, `SliderCallbacks`, `SliderKind`, `SliderSource`, `SliderMotion` | The vertical slider (decision 5), see below. Optional `SliderView.keyStep(cur, key)` replaces the key steps and `SliderView.snap(value)` maps the read-out value (fan speeds). |
+| `slider` | `SliderController`, `renderSlider()`, `sliderStyles`, `levelPercent()`, `brightnessPercent()`, `spectrumGradient()`, types `SliderView`, `SliderCallbacks`, `SliderKind`, `SliderSource`, `SliderMotion` | The vertical slider (decision 5), see below. Optional `SliderView.keyStep(cur, key)` replaces the key steps (its value is clamped to the range) and `SliderView.snap(value)` maps the read-out value (fan speeds). `SliderView.orientation` (`'vertical'` or `'horizontal'`), `SliderView.max`, `SliderView.readOnly` and `SliderView.ticker` cover a horizontal, read-only or ticking slider (a media volume or position). |
 | `i18n` | `createI18n()`, `coreT`, `CORE_LAYER`, `LANGUAGES`, `flatten`, `rawLanguage`, `resolveLanguage`, `num`, `numAuto`, `haLocalize`, `humanize`, `translated`, types `I18n`, `I18nLayer`, `I18nHass`, `Language`, `Vars` | String layers. `createI18n([product, ...cards])` merges core, product and card strings (later wins) per language, English as the fallback. Core strings live under `core.*` (`core.off`, `core.unavailable`, `core.percent`, `core.close`, `core.history`, `core.editor.*`). |
-| `sheet` | `LiquidSheetBase`, types `SheetConfig`, `SheetOwner` | Abstract modal sheet (a `<dialog>` on glass) with an abstract `createContent(config)`. No tag: products subclass and define it. `open(config, returnTo?)` as Liquid Climate; `openFor(owner, config, returnTo?)` also follows the owner card (below). `SheetConfig.historyEntityId` is opt-in: when set, a history button sits in the header next to Close (Close and then navigate with `openHistory`), labelled `core.history`; `reconfigure()` adds or removes it. |
+| `sheet` | `LiquidSheetBase`, types `SheetConfig`, `SheetOwner` | Abstract modal sheet (a `<dialog>` on glass) with an abstract `createContent(config)`. No tag: products subclass and define it. `open(config, returnTo?)` as Liquid Climate; `openFor(owner, config, returnTo?)` also follows the owner card (below). `SheetConfig.historyEntityId` is opt-in: when set, a history button sits in the header next to Close (Close and then navigate with `openHistory`), labelled `core.history`; `reconfigure()` adds or removes it. Protected hooks: `headerActions(config)` returns a template rendered in the header before the history and Close buttons (default nothing), `requestActions()` re-renders those header buttons in place (focus stays; does nothing while closed), and `onClosed()` is called once each time the sheet has finished closing, after the content is dropped, with focus already back on `returnTo`, if any (not on removal). |
 | `editor` | `segField()`, `lookFields()`, `helpLink()`, `editorStyles`, types `EditorT`, `LookValues` | Template helpers for card editors (segmented fields, the look section, help links). |
 | `navigate` | `openHistory(el, entityId)` | Goes to HA's history page for an entity without a reload, matching HA 2026.11's own navigate(): `history.pushState({ from: location.pathname }, '', '/history?entity_id=<encoded id>')` (so HA's back arrow returns to the dashboard), then a `location-changed` event (bubbles, composed, detail `{ replace: false }`) on `window`. Not matched: HA's dialog handling, its unsaved-changes guards, and mainWindow (relevant only in popup windows). |
 | `math` | `clamp`, `valueToFraction`, `snap`, `decimalsForStep` | Number helpers. |
@@ -223,6 +225,24 @@ npm run dev            # slider harness
 `npm run parity:fixture` regenerates the parity fixture from a Liquid Climate checkout (see `scripts/parity-fixture.mjs`).
 
 `scripts/build-font.sh` rebuilds `fonts/liquid-inter.woff2` (needs Python with fonttools 4.68.0 and brotli 1.2.1; see the script). The built file is committed, so CI and normal development do not need it. The script builds in a temporary directory and only replaces the committed file when the sha256 matches; `OUT=/some/path scripts/build-font.sh` writes the result there instead, for a check-only run.
+
+## On the roadmap
+
+What we are working on. Plans can change.
+
+- Shared history loading for sparklines on the cards (planned).
+
+Missing something? Feature requests and ideas are welcome: [open an issue](https://github.com/decibel95/liquid-core/issues/new).
+
+## Liquid family
+
+<!-- When a new Liquid repo is created, add its row to this table in every Liquid README. -->
+
+| Project | What it is |
+| --- | --- |
+| [Liquid Climate](https://github.com/decibel95/liquid-climate) | Glass cards for climate, water heater and humidifier entities (Home Assistant, HACS) |
+| [Liquid Home](https://github.com/decibel95/liquid-home) | Glass cards for lights, covers, fans and media players (Home Assistant, HACS) |
+| **liquid-core** (this repo) | Shared design library behind the Liquid cards (npm) |
 
 ## Licence
 

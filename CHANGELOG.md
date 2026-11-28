@@ -5,9 +5,27 @@ All notable changes to liquid-core. The format follows [Keep a Changelog](https:
 While liquid-core is 0.x, a minor bump marks any visual change (a token value, a style, an icon path) or an API break, and a patch bump marks non-visual fixes only. Every visual change is listed under `### Changed` with the token name and the old and new value.
 
 <!-- #region entries -->
-## 0.4.0
+## 0.5.0
 
-The current version.
+The 0.5.0 changes: the artwork backdrop, a horizontal and a read-only slider, eight media icons, a header slot and two hooks in the sheet, and the menu rows. Nothing existing changes visually.
+
+### Added
+- Artwork backdrop for media cards: `ArtworkController` (one per host element; `set(url)` from `willUpdate`, loads only while the host is in view, decodes a new cover before it is drawn and keeps the old one meanwhile, drops to plain glass on an empty URL, a decode error or no decode within `ART.decodeCap`), `renderArtwork(ctrl, { motion })` (the layer template, instant under reduced motion and `look.motion` minimal) and `artworkStyles` (the layer and scrim CSS).
+- `ART.fade` (800, the crossfade in ms), `ART.decodeCap` (3000, the decode time limit in ms) and `ART.scrimLight` (the scrim of the light glass over a cover).
+- `SliderView.orientation` (`'vertical'` default or `'horizontal'`; a horizontal slider is the full width of its container, fills from the start edge, which is the right edge in RTL, and has no knob), `SliderView.max` (the top of the range, default 100; drives `aria-valuemax`, drag scaling and Home and End), `SliderView.readOnly` (the same drawing as a `progressbar` with no focus, pointer or key handling) and `SliderView.ticker` (horizontal only: a value that changes without a drag moves the fill with a 1 s linear transition, as for a playing position).
+- `SLIDER.horizontal` (height 44, radius 22) and `SLIDER.ticker` (1000 ms, linear).
+- Icon keys in `ICONS`, Lucide 0.460.0 in the existing line style, appended after `moveDiagonal`: `speaker`, `play`, `pause`, `skipForward`, `volumeX`, `shuffle`, `repeat` and `repeat1`.
+- `LiquidSheetBase.headerActions(config)`: protected, returns a template rendered in the sheet header before the history and close buttons. The default renders nothing, so a sheet that does not override it is unchanged.
+- `LiquidSheetBase.requestActions()`: protected, re-renders the header buttons into the same nodes (focus stays) for a subclass whose header action state changes without a hass change. It does nothing while the sheet is closed.
+- `LiquidSheetBase.onClosed()`: protected hook, called once each time the sheet finishes closing (Close, Escape, the backdrop, a native close of the dialog or removal while open), after the sheet has dropped its content (the element leaves the DOM on the next render). Focus has already gone back to `returnTo`, if any (not on removal). A subclass can release what it holds for the open sheet there. The default does nothing.
+- Menu rows for a choice list drawn inside the card's glass, the same rows as the Liquid Climate sheet menu: `menuStyles` (`.mpanel`, `.mhead`, `.mgroup`, `.mitem` with hover and the selected pill on a `radio` or `menuitemradio` row, `.mlabel` on up to two lines, `.mcheck` shown only on the selected row, and the focus ring of the Liquid Climate menu, 2px inside the row), `MENU` (panel radius 16, padding 6, gap 6; head 12 / 600; rows 44 high, radius 12, 2 apart, text 13; check 16 with stroke 2.4) and `MENU_CHECK`, the check path of the selected row.
+
+### Fixed
+- The value from `SliderView.keyStep` is clamped to the range of the slider before it is previewed and written, so a step past the end can no longer set an out-of-range value.
+- A sheet closed and opened again at once (for example for another entity) is no longer emptied by the close event of the first close, which the browser delivers after the dialog has opened again.
+- A sheet closed while it is still opening no longer leaves an empty modal dialog open that blocks the page. `open()` now settles in that case, and removing the sheet while it is opening no longer rejects.
+
+## 0.4.0
 
 ### Added
 - Six line icons for covers and fans in `ICONS`, all Lucide 0.460.0 in the existing line style, appended after `history` so the existing entries are unchanged: `blinds` (cover), `chevronUp` (open), `chevronDown` (close), `stop` (stop, Lucide `square` written as one path), `rotateCw` (fan direction) and `moveDiagonal` (tilt mode).

@@ -64,6 +64,7 @@ const chrome = {
   tile: cssOf('src/cards/tile/liquid-climate-tile.ts'),
   badge: cssOf('src/cards/badge/liquid-climate-badge.ts'),
   cluster: cssOf('src/cards/cluster/liquid-climate-cluster.ts'),
+  menu: cssOf('src/ui/menu.ts'),
 };
 
 // Values Liquid Climate writes in code rather than in a stylesheet.
@@ -72,6 +73,7 @@ const chevron = /const CHEVRON = '([^']+)';/.exec(clusterSrc)?.[1];
 const clusterIcons = [...clusterSrc.matchAll(/this\._icon\(([^,]+), (\d+(?:\.\d+)?), (\d+(?:\.\d+)?)\)/g)]
   .filter((m) => !m[0].includes('path: string'))
   .map((m) => ({ icon: m[1], size: Number(m[2]), stroke: Number(m[3]) }));
+const menuCheck = /<svg class="mcheck"[^>]*><path d="([^"]+)"/.exec(show('src/ui/menu.ts'))?.[1];
 const powerTint = Number(/background: on \? rgba\(color, ([\d.]+)\)/.exec(show('src/cards/dial/liquid-climate-card.ts'))?.[1]);
 // Theme variables a user can set (plan 4.1, D-3): every --lc-* custom property Liquid Climate reads with a fallback
 // and never sets itself anywhere.
@@ -82,7 +84,7 @@ const allSrc = git('ls-tree', '-r', '--name-only', COMMIT, 'src')
   .join('\n');
 const themeVars = [...new Set([...allSrc.matchAll(/var\((--lc-[a-z-]+), /g)].map((m) => m[1]))].filter((v) => !allSrc.includes(`${v}:`));
 themeVars.sort();
-if (!chevron || !clusterIcons.length || !powerTint) throw new Error('chrome values not found in the Liquid Climate source');
+if (!chevron || !menuCheck || !clusterIcons.length || !powerTint) throw new Error('chrome values not found in the Liquid Climate source');
 
 const fixture = {
   source: { project: 'liquid-climate', version: '0.11.1', commit: COMMIT },
@@ -98,6 +100,7 @@ const fixture = {
   focusRing,
   powerTint,
   chevron,
+  menuCheck,
   clusterIcons,
   themeVars,
   chrome,

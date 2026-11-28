@@ -33,6 +33,10 @@ export const SLIDER = {
   toggle: { role: 'switch' },
   /** TOK-9: the existing disabled step value, DISABLED_OPACITY. */
   unavailableOpacity: DISABLED_OPACITY,
+  /** P3-TOK-5, P3-CHO-2 option 1: the horizontal slider (media seek and volume), full width of its container. */
+  horizontal: { height: 44, radius: 22 },
+  /** GD3: a ticking value (media position) moves its fill with this transition instead of the TOK-10 one. */
+  ticker: { ms: 1000, easing: 'linear' },
   /**
    * TOK-10: the fill eases in 0.8s (the dial arc's transition) when HA reports a change; no transition
    * while dragging or under reduced motion. Height and colour both move, as the gate 2 approved
@@ -94,7 +98,10 @@ export const ENTITY = {
   step: 0.01,
 } as const;
 
-/** The artwork backdrop: one blurred image layer under the single glass surface, no scrim (CHO-2 option A). */
+/**
+ * The artwork backdrop: one blurred image layer under the single glass surface. No scrim on dark glass; on
+ * light glass `scrimLight` sits inside the art layer between the image and the glass fill (P3-TOK-4).
+ */
 export const ART = {
   /** TOK-15: fixed, the look.blur default. */
   blur: 30,
@@ -102,8 +109,14 @@ export const ART = {
   scale: 1.15,
   /** TOK-17: fg and fg2 over any cover. */
   minText: 4.5,
-  /** TOK-18: fg2 on light glass over artwork is the menu's fg2. */
+  /** TOK-18: kept for compatibility. Not used together with `scrimLight`: fg2 and fg3 keep their glass values over art. */
   lightFg2: MENU_GLASS.light.fg2,
+  /** P3-TOK-3: the crossfade between two covers, the TOK-10 duration in ms. */
+  fade: 800,
+  /** GD5: no decode within this many ms drops the layer to plain glass. */
+  decodeCap: 3000,
+  /** P3-TOK-4: the light glass colour at alpha 0.9, drawn on light glass only. */
+  scrimLight: 'rgba(248,249,252,0.9)',
 } as const;
 
 /**

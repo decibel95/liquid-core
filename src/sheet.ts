@@ -49,6 +49,26 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
   /** Hand `config` to the content, on open and whenever the owning card's config changes. Default: nothing. */
   protected applyConfig(_content: HTMLElement, _config: C): void {}
 
+  /** Extra header buttons, rendered before History. They carry class `act` (and `aria-pressed` for a toggle). Default: none. */
+  protected headerActions(_config: C): unknown {
+    return nothing;
+  }
+
+  /**
+   * Called once each time the sheet finishes closing (Close, Escape, the backdrop, a native close of the dialog or
+   * removal while open), after the sheet has dropped its content (the element leaves the DOM on the next render);
+   * focus has already returned. Subclasses release what they hold for the open sheet here. Default: nothing.
+   */
+  protected onClosed(): void {}
+
+  /**
+   * Re-render the header buttons into the same nodes, so focus stays. Subclasses call it when the state of their header
+   * actions changes without a hass change. Does nothing while the sheet is closed.
+   */
+  protected requestActions(): void {
+    if (this._content && this._config) this._renderActions(this._content, this._config);
+  }
+
   /** A string of the core layer in the user's language. Products with their own layers override this. */
   protected tr(key: string, vars?: Vars): string {
     return coreT(this.hass, key, vars);
@@ -72,6 +92,8 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
     this._config = config;
     this._content = content;
     await this.updateComplete;
+    // Closed (or closed and opened again) while this call awaited: showing the dialog now would leave it open and empty.
+    if (this._content !== content) return;
     const dialog = this._dialog();
     if (dialog && !dialog.open) dialog.showModal();
     // The dialog would focus the first focusable in the composed tree, usually a power button,
@@ -91,7 +113,7 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
     const close = html`<button class="close" slot="header-action" aria-label=${this.tr('core.close')} autofocus @click=${() => this.close()}>
       ${svg`<svg class="i" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d=${ICONS.close}></path></svg>`}
     </button>`;
-    render([history, close], content);
+    render([this.headerActions(config), history, close], content);
   }
 
   /** Close first (removing the content), then navigate: the id is already captured and the event goes to window. */
@@ -181,18 +203,27 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
     };
   }
 
+  /**
+   * The one place where the sheet finishes closing. A native close event is queued as a task, so after close() and an
+   * immediate open() it can arrive while the dialog is open again: it then belongs to the earlier close and is ignored.
+   */
   private _closed = () => {
-    if (!this._content) return;
+    if (!this._content || this._dialog()?.open) return;
     this._unfollow?.();
     this._unfollow = undefined;
     this._content = undefined;
     const to = this._returnTo;
     this._returnTo = undefined;
     to?.focus();
+    this.onClosed();
   };
 
   protected override willUpdate(changed: PropertyValues): void {
-    if (changed.has('hass') && this._content && this.hass) (this._content as HTMLElement & { hass?: HomeAssistant }).hass = this.hass;
+    if (changed.has('hass') && this._content && this.hass) {
+      (this._content as HTMLElement & { hass?: HomeAssistant }).hass = this.hass;
+      // Header buttons that follow hass (a pressed state) re-render into the same nodes, so focus stays.
+      if (this._config) this._renderActions(this._content, this._config);
+    }
   }
 
   override disconnectedCallback(): void {
@@ -201,9 +232,7 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
     this._returnTo = undefined;
     const dialog = this._dialog();
     if (dialog?.open) dialog.close();
-    this._unfollow?.();
-    this._unfollow = undefined;
-    this._content = undefined;
+    this._closed();
   }
 
   private _onCancel = (e: Event) => {
@@ -304,7 +333,8 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
       }
       /* Slotted into the card header: it inherits the card's glass tokens, like its power button. */
       .close,
-      .history {
+      .history,
+      .act {
         width: 44px;
         height: 44px;
         flex: none;
@@ -321,9 +351,14 @@ export abstract class LiquidSheetBase<C extends SheetConfig = SheetConfig> exten
         border: 1px solid var(--lc-btn-edge);
       }
       .close:focus-visible,
-      .history:focus-visible {
+      .history:focus-visible,
+      .act:focus-visible {
         outline: 2px solid var(--lc-bright);
         outline-offset: 2px;
+      }
+      .act[aria-pressed='true'] {
+        background: var(--lc-btn-on);
+        border-color: var(--lc-btn-on-edge);
       }
       @media (prefers-reduced-motion: reduce) {
         dialog[open] {

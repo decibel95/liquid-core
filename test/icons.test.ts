@@ -16,7 +16,8 @@ const dir = url.fileURLToPath(new URL('./fixtures/lucide/', import.meta.url));
 /**
  * One SVG to the ICONS form: each element in order, joined with a space. A leading relative moveto is
  * written absolute (its implicit pairs become a relative lineto); a circle is two arcs from the top;
- * a rounded rect is one closed path clockwise from the end of the top left corner.
+ * a rounded rect is one closed path clockwise from the end of the top left corner; a polygon is M, L per point
+ * (a closing point equal to the first dropped) and z; a line is M and L.
  */
 function toIconPath(svg: string): string {
   const out: string[] = [];
@@ -37,6 +38,15 @@ function toIconPath(svg: string): string {
       const [x, y, w, h, r] = ['x', 'y', 'width', 'height', 'rx'].map((n) => Number(attr(n)));
       const a = `a${r} ${r} 0 0 1`;
       out.push(`M${x + r} ${y}h${w - 2 * r}${a} ${r} ${r}v${h - 2 * r}${a}-${r} ${r}H${x + r}${a}-${r}-${r}V${y + r}${a} ${r}-${r}z`);
+    } else if (tag === 'polygon') {
+      const pts = attr('points').trim().split(/[\s,]+/).map(Number);
+      const xy: string[] = [];
+      for (let i = 0; i < pts.length; i += 2) xy.push(`${pts[i]} ${pts[i + 1]}`);
+      if (xy.length > 1 && xy[xy.length - 1] === xy[0]) xy.pop();
+      out.push(`M${xy[0]}${xy.slice(1).map((q) => `L${q}`).join('')}z`);
+    } else if (tag === 'line') {
+      const [x1, y1, x2, y2] = ['x1', 'y1', 'x2', 'y2'].map((n) => attr(n));
+      out.push(`M${x1} ${y1}L${x2} ${y2}`);
     } else {
       throw new Error(`${tag} is not converted; add it when an icon needs it`);
     }
@@ -77,8 +87,8 @@ describe('icons equal lucide-static 0.460.0', () => {
   it('ICO-2 sun is Lucide sun', () => expect(ICONS.sun).toBe(toIconPath(lucide('sun'))));
   it('ICO-3 rainbow is Lucide rainbow', () => expect(ICONS.rainbow).toBe(toIconPath(lucide('rainbow'))));
 
-  it('the gate 1 icons follow the 24 Liquid Climate icons, then the 0.3 icons, nothing else', () => {
-    expect(Object.keys(ICONS).slice(24)).toEqual(['bulb', 'sun', 'rainbow', 'history', ...Object.keys(P2)]);
+  it('the gate 1 icons follow the 24 Liquid Climate icons, then the 0.3 icons (the 0.4 icons follow, below)', () => {
+    expect(Object.keys(ICONS).slice(24, 34)).toEqual(['bulb', 'sun', 'rainbow', 'history', ...Object.keys(P2)]);
   });
 
   it('the rect conversion writes Lucide square as one closed path', () => {
@@ -91,6 +101,38 @@ describe('icons equal lucide-static 0.460.0', () => {
 
   it('every icon is path data only (line icons, no shapes or fills)', () => {
     for (const d of Object.values(ICONS)) expect(d).toMatch(/^[MmLlHhVvCcSsQqTtAaZz\d\s.,-]+$/);
+  });
+});
+
+// Liquid Home 0.4 icons (P3-ICO-1, 3 to 5 and the media icons), in ICONS order, with their Lucide file.
+const P3 = {
+  speaker: 'speaker',
+  play: 'play',
+  pause: 'pause',
+  skipForward: 'skip-forward',
+  volumeX: 'volume-x',
+  shuffle: 'shuffle',
+  repeat: 'repeat',
+  repeat1: 'repeat-1',
+} as const;
+
+describe('Liquid Home 0.4 icons (liquid-core 0.5.0)', () => {
+  it('follow moveDiagonal in order, ICONS has 42 keys', () => {
+    expect(Object.keys(ICONS).slice(34)).toEqual(Object.keys(P3));
+    expect(Object.keys(ICONS)).toHaveLength(42);
+  });
+
+  for (const [key, file] of Object.entries(P3)) {
+    it(`${key} is Lucide ${file}`, () => {
+      const svg = lucide(file);
+      expect(svg).toContain('@license lucide-static v0.460.0 - ISC');
+      expect(ICONS[key as keyof typeof P3]).toBe(toIconPath(svg));
+    });
+  }
+
+  it('polygon and line conversions', () => {
+    expect(toIconPath('<polygon points="6 3 20 12 6 21 6 3" />')).toBe('M6 3L20 12L6 21z');
+    expect(toIconPath('<line x1="19" x2="19" y1="5" y2="19" />')).toBe('M19 5L19 19');
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MENU_GLASS } from '../src/glass';
+import { GLASS, MENU_GLASS } from '../src/glass';
 import { ICONS } from '../src/icons';
 import { PALETTE, tone } from '../src/palette';
 import { ART, DISABLED_OPACITY, ENTITY, FOCUS, PILL_MODES, READOUT, SLIDER, SPECTRUM } from '../src/tokens';
@@ -40,6 +40,18 @@ describe('gate 1 tokens', () => {
     expect([ART.blur, ART.scale, ART.minText]).toEqual([30, 1.15, 4.5]);
     expect(ART.lightFg2).toBe('rgba(16,20,27,0.86)');
     expect(ART.lightFg2).toBe(MENU_GLASS.light.fg2);
+  });
+
+  it('ART: P3-TOK-3, P3-TOK-4, GD5', () => {
+    expect([ART.fade, ART.decodeCap]).toEqual([800, 3000]);
+    expect(ART.scrimLight).toBe('rgba(248,249,252,0.9)');
+    // The light glass colour at alpha 0.9.
+    expect(ART.scrimLight).toBe(GLASS.light.bg.replace(/,[\d.]+\)$/, ',0.9)'));
+  });
+
+  it('SLIDER: P3-TOK-5 horizontal and GD3 ticker', () => {
+    expect(SLIDER.horizontal).toEqual({ height: 44, radius: 22 });
+    expect(SLIDER.ticker).toEqual({ ms: 1000, easing: 'linear' });
   });
 
   it('SPECTRUM: TOK-21 shape (the stops are recomputed in colour.test.ts)', () => {

@@ -20,6 +20,10 @@ import { SLIDER } from './tokens';
  * Drag is relative (CHO-8, gate 2): the value moves by the pointer delta from the grab point, so a tap
  * without movement changes nothing. The controller never writes: it reports gestures through callbacks so
  * the card can preview, and hold() and release() its write queue around a gesture.
+ *
+ * Horizontal (P3-TOK-5, the media seek bar) is the same pill laid on its side: full width, `SLIDER.horizontal`
+ * height and radius, the fill grows from the start edge (right in RTL), the drag reads clientX (sign flipped in
+ * RTL, read once at gesture start), and only Left/Right swap in RTL (WAI-ARIA slider pattern).
  */
 
 export type SliderKind = 'level' | 'position' | 'toggle';
@@ -29,7 +33,7 @@ export type SliderMotion = 'rich' | 'subtle' | 'minimal';
 export interface SliderCallbacks {
   /** A gesture starts: pointer down on the pill, or the first key press. Cards call hold() on their write queue. */
   onStart?(source: SliderSource): void;
-  /** Every value change inside a gesture (each pointer move that moves the value, each key step). 0 to 100; for `level` 0 is off. */
+  /** Every value change inside a gesture (each pointer move that moves the value, each key step). 0 to `max` (100); for `level` 0 is off. */
   onPreview?(value: number, source: SliderSource): void;
   /** The gesture ends (pointer up or cancel, key up, blur). `value` is the last previewed value, or null when nothing changed. Cards call release(). */
   onEnd?(value: number | null, source: SliderSource): void;
@@ -40,7 +44,7 @@ export interface SliderCallbacks {
 /** What the card draws, passed to renderSlider() on every render. */
 export interface SliderView {
   kind: SliderKind;
-  /** Fill position 0 to 100. `level`: brightness percent (unrounded is fine). Ignored by `toggle`. */
+  /** Fill position 0 to `max` (default 100). `level`: brightness percent (unrounded is fine). Ignored by `toggle`. */
   value: number;
   /** Whether the entity is on. Off draws an empty pill. */
   on: boolean;
@@ -48,7 +52,7 @@ export interface SliderView {
   available?: boolean;
   /** Fill colour: the entity colour (entityColour().hex) or the neutral. */
   color: string;
-  /** Optional toned spectrum stops (TOK-21), bottom to top, drawn inside the fill and anchored to the whole pill. */
+  /** Optional toned spectrum stops (TOK-21), bottom to top, drawn inside the fill and anchored to the whole pill. Vertical only. */
   stops?: readonly string[];
   /** aria-label, from the caller: entity name plus mode ("Kitchen brightness"). */
   label: string;
@@ -61,8 +65,26 @@ export interface SliderView {
    * `valueText`. On `level` a snapped 0 reads as off. Unset: the value as is.
    */
   snap?: (value: number) => number;
-  /** Pill height in px, default TOK-2 280, never below 200. */
+  /** Pill height in px, default TOK-2 280, never below 200. Vertical only (horizontal is `SLIDER.horizontal.height`). */
   height?: number;
+  /**
+   * Default `vertical`. `horizontal` is full width of its container at `SLIDER.horizontal` height, fills from the
+   * start edge (right in RTL), has no knob, and reads clientX (P3-TOK-5, P3-CHO-2 option 1).
+   */
+  orientation?: 'vertical' | 'horizontal';
+  /**
+   * Top of the value range, default 100. Drives aria-valuemax, drag scaling and Home/End (the media seek bar passes the
+   * duration in seconds). Meant for `position`: the `level` rules (under half a percent is off, 1 % minimum) work in
+   * value units, so they are percent only at the default 100.
+   */
+  max?: number;
+  /**
+   * P3-CHO-3: the same drawing as `role="progressbar"` with no focus, tabindex, pointer or key handling, and no
+   * aria-disabled (unavailable still draws at TOK-9 opacity). Ignored by `toggle`, which stays a switch.
+   */
+  readOnly?: boolean;
+  /** GD3, horizontal: non-drag value changes move the fill with `SLIDER.ticker` (1 s linear) instead of TOK-10; none under reduced or minimal motion. */
+  ticker?: boolean;
   /** The card's look.motion. `minimal` removes the fill transition, as reduced motion does. */
   motion?: SliderMotion;
   /** For localized value text. */
@@ -71,7 +93,8 @@ export interface SliderView {
   i18n?: Pick<I18n, 't'>;
 }
 
-type Drag = { id: number; y0: number; start: number; height: number; last: number; moved: boolean };
+/** p0: the grab coordinate; size: the pill length in px; sign: -1 flips the delta (vertical, and horizontal RTL). */
+type Drag = { id: number; p0: number; start: number; size: number; sign: number; last: number; moved: boolean };
 
 /** The level a percentage shows as, per CHO-8: never 0 while on. */
 export const levelPercent = (value: number, on: boolean): number => (on ? Math.max(1, Math.round(value)) : 0);
@@ -87,6 +110,8 @@ export function spectrumGradient(stops: readonly string[]): string {
 
 const KEYS_LEVEL = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'PageUp', 'PageDown', 'Home', 'End'];
 const REDUCED = '(prefers-reduced-motion: reduce)';
+const rtl = (el: Element): boolean => getComputedStyle(el).direction === 'rtl';
+const maxOf = (v: SliderView): number => v.max ?? 100;
 
 /**
  * Pointer, keyboard and motion state of one slider. Create it in the card's constructor
@@ -104,7 +129,7 @@ export class SliderController implements ReactiveController {
   view: SliderView | undefined;
 
   private drag: Drag | undefined;
-  private key: { start: number; last: number; moved: boolean } | undefined;
+  private key: { start: number; last: number; moved: boolean; rtl: boolean } | undefined;
   private tap: number | undefined;
   private tapAt = -Infinity;
   private mq: MediaQueryList | undefined;
@@ -132,7 +157,7 @@ export class SliderController implements ReactiveController {
 
   /** The drawn state: the preview inside a gesture, otherwise the view. */
   shown(view: SliderView = this.view as SliderView): { value: number; on: boolean } {
-    if (this.preview === undefined) return { value: view.on ? clamp(view.value, 0, 100) : 0, on: view.on };
+    if (this.preview === undefined) return { value: view.on ? clamp(view.value, 0, maxOf(view)) : 0, on: view.on };
     return { value: this.preview, on: view.kind === 'level' ? this.preview > 0 : true };
   }
 
@@ -148,7 +173,7 @@ export class SliderController implements ReactiveController {
 
   private usable(): SliderView | undefined {
     const v = this.view;
-    return v && v.available !== false ? v : undefined;
+    return v && v.available !== false && !(v.readOnly && v.kind !== 'toggle') ? v : undefined;
   }
 
   private setDragging(on: boolean): void {
@@ -186,8 +211,11 @@ export class SliderController implements ReactiveController {
     }
     this.endKey();
     const start = this.shown(v).value;
-    const height = el.getBoundingClientRect?.().height || Math.max(SLIDER.minHeight, v.height ?? SLIDER.height);
-    this.drag = { id: e.pointerId, y0: e.clientY, start, height, last: start, moved: false };
+    const box = el.getBoundingClientRect?.();
+    this.drag =
+      v.orientation === 'horizontal'
+        ? { id: e.pointerId, p0: e.clientX, start, size: box?.width || 1, sign: rtl(el) ? -1 : 1, last: start, moved: false }
+        : { id: e.pointerId, p0: e.clientY, start, size: box?.height || Math.max(SLIDER.minHeight, v.height ?? SLIDER.height), sign: -1, last: start, moved: false };
     this.setDragging(true);
     this.callbacks.onStart?.('pointer');
   };
@@ -197,7 +225,9 @@ export class SliderController implements ReactiveController {
     const d = this.drag;
     const v = this.view;
     if (!d || !v || e.pointerId !== d.id) return;
-    const raw = clamp(d.start + ((d.y0 - e.clientY) / d.height) * 100, 0, 100);
+    const max = maxOf(v);
+    const p = v.orientation === 'horizontal' ? e.clientX : e.clientY;
+    const raw = clamp(d.start + ((d.sign * (p - d.p0)) / d.size) * max, 0, max);
     // As the prototype: under half a percent is off, anything above shows at least 1 %.
     const value = v.kind === 'level' ? (raw < 0.5 ? 0 : Math.max(1, raw)) : raw;
     if (value === d.last) return;
@@ -241,31 +271,31 @@ export class SliderController implements ReactiveController {
 
   // ---- Keyboard (CHO-8) ------------------------------------------------------------
 
-  /** The value a key leads to from `cur`, or undefined for a key the slider does not handle. */
-  static step(kind: Exclude<SliderKind, 'toggle'>, key: string, cur: number): number | undefined {
+  /** The value a key leads to from `cur`, or undefined for a key the slider does not handle. `max` tops the range (End). */
+  static step(kind: Exclude<SliderKind, 'toggle'>, key: string, cur: number, max = 100): number | undefined {
     if (kind === 'level') {
       switch (key) {
         case 'ArrowUp':
         case 'ArrowRight':
-          return Math.min(100, cur + 1);
+          return Math.min(max, cur + 1);
         case 'ArrowDown':
         case 'ArrowLeft':
           return Math.max(0, cur - 1); // from 1 % this is 0: off
         case 'PageUp':
-          return Math.min(100, Math.max(1, cur + 10));
+          return Math.min(max, Math.max(1, cur + 10));
         case 'PageDown':
           return cur === 0 ? 0 : Math.max(1, cur - 10);
         case 'Home':
           return 1; // the lowest on level
         case 'End':
-          return 100;
+          return max;
       }
       return undefined;
     }
     const delta: Record<string, number> = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 10, PageDown: -10 };
     if (key === 'Home') return 0;
-    if (key === 'End') return 100;
-    return key in delta ? clamp(cur + delta[key], 0, 100) : undefined;
+    if (key === 'End') return max;
+    return key in delta ? clamp(cur + delta[key], 0, max) : undefined;
   }
 
   /** @internal */
@@ -281,10 +311,15 @@ export class SliderController implements ReactiveController {
     if (!KEYS_LEVEL.includes(e.key) || this.drag) return;
     const shown = this.shown(v);
     const cur = v.kind === 'level' ? levelPercent(shown.value, shown.on) : Math.round(shown.value);
-    const next = (v.keyStep?.(cur, e.key) ?? SliderController.step(v.kind, e.key, cur)) as number;
+    const max = maxOf(v);
+    // Horizontal RTL: Left increases, Right decreases; Up and Down never swap. Read once per key gesture.
+    const flip = this.key ? this.key.rtl : v.orientation === 'horizontal' && rtl(e.currentTarget as Element);
+    const k = flip && e.key === 'ArrowLeft' ? 'ArrowRight' : flip && e.key === 'ArrowRight' ? 'ArrowLeft' : e.key;
+    // V9 follow-up 3: a keyStep result outside the range is clamped before it is previewed and written.
+    const next = clamp((v.keyStep?.(cur, k) ?? SliderController.step(v.kind, k, cur, max)) as number, 0, max);
     e.preventDefault();
     if (!this.key) {
-      this.key = { start: cur, last: cur, moved: false };
+      this.key = { start: cur, last: cur, moved: false, rtl: flip };
       this.setDragging(true);
       this.callbacks.onStart?.('key');
     }
@@ -316,6 +351,9 @@ export class SliderController implements ReactiveController {
 }
 
 const EDGE = SLIDER.edge.width;
+/** TOK-10 on the fill's size property (height, or width when horizontal), then the colour. */
+const motion = (size: string): string =>
+  SLIDER.motion.properties.map((p) => `${p === 'height' ? size : p} ${SLIDER.motion.durationMs}ms ${SLIDER.motion.easing}`).join(', ');
 
 /** Styles of renderSlider(). Add them to the card's static styles next to focusRing (focus.ts). */
 export const sliderStyles = css`
@@ -342,6 +380,22 @@ export const sliderStyles = css`
     opacity: ${SLIDER.unavailableOpacity};
     cursor: default;
   }
+  .lc-slider-h {
+    width: 100%;
+    height: ${SLIDER.horizontal.height}px;
+    min-height: 0;
+    border-radius: ${SLIDER.horizontal.radius}px;
+    touch-action: pan-y;
+    cursor: ew-resize;
+    contain: layout paint;
+  }
+  .lc-slider[role='progressbar'] {
+    touch-action: auto;
+    cursor: default;
+  }
+  .lc-slider-na {
+    opacity: ${SLIDER.unavailableOpacity};
+  }
   .lc-slider-fill {
     position: absolute;
     left: 0;
@@ -350,13 +404,28 @@ export const sliderStyles = css`
     opacity: ${SLIDER.fill.opacity};
     background-position: bottom;
     background-repeat: no-repeat;
-    transition: ${unsafeCSS(SLIDER.motion.properties.map((p) => `${p} ${SLIDER.motion.durationMs}ms ${SLIDER.motion.easing}`).join(', '))};
+    transition: ${unsafeCSS(motion('height'))};
+  }
+  .lc-slider-h > .lc-slider-fill {
+    top: 0;
+    left: auto;
+    right: auto;
+    inset-inline-start: 0;
+    transition: ${unsafeCSS(motion('width'))};
+  }
+  .lc-slider-fill.tick {
+    transition: width ${SLIDER.ticker.ms}ms ${unsafeCSS(SLIDER.ticker.easing)};
   }
   .lc-slider-fill.still {
     transition: none;
   }
   @media ${unsafeCSS(REDUCED)} {
     .lc-slider-fill {
+      transition: none;
+    }
+  }
+  @media ${unsafeCSS(REDUCED)} {
+    .lc-slider-h > .lc-slider-fill {
       transition: none;
     }
   }
@@ -370,7 +439,11 @@ export function renderSlider(c: SliderController, view: SliderView): TemplateRes
   const { value, on } = c.shown(view);
   const height = Math.max(SLIDER.minHeight, view.height ?? SLIDER.height);
   const toggle = view.kind === 'toggle';
-  const fillHeight = toggle ? (on ? 100 : 0) : value;
+  const h = view.orientation === 'horizontal';
+  const ro = !!view.readOnly && !toggle;
+  const max = maxOf(view);
+  // value / (max / 100) is exact for the default max 100, so unset fields draw today's numbers.
+  const fillSize = toggle ? (on ? 100 : 0) : max > 0 ? value / (max / 100) : 0;
   let valueNow: number | undefined;
   let valueText: string | undefined;
   if (!toggle) {
@@ -382,37 +455,41 @@ export function renderSlider(c: SliderController, view: SliderView): TemplateRes
       ? t(view.hass, 'core.unavailable')
       : off
         ? t(view.hass, 'core.off')
-        : (view.valueText?.(valueNow) ?? t(view.hass, 'core.percent', { value: valueNow }));
+        : (view.valueText?.(valueNow) ?? t(view.hass, 'core.percent', { value: max > 0 ? Math.round(valueNow / (max / 100)) : 0 }));
   }
-  const fill = {
-    height: `${fillHeight}%`,
-    'background-color': view.color,
-    'background-image': view.stops?.length ? spectrumGradient(view.stops) : 'none',
-    'background-size': `100% ${height - 2 * EDGE}px`,
-  };
+  const fill = h
+    ? { width: `${fillSize}%`, 'background-color': view.color }
+    : {
+        height: `${fillSize}%`,
+        'background-color': view.color,
+        'background-image': view.stops?.length ? spectrumGradient(view.stops) : 'none',
+        'background-size': `100% ${height - 2 * EDGE}px`,
+      };
+  // Read-only (P3-CHO-3): a progressbar with no tabindex, orientation or start handlers. The end handlers stay,
+  // so a gesture cut off by a switch to read-only still ends and releases the card's write queue.
   return html`<div
-    class="lc-slider"
-    role=${toggle ? SLIDER.toggle.role : 'slider'}
-    tabindex="0"
+    class=${`lc-slider${h ? ' lc-slider-h' : ''}${ro && !available ? ' lc-slider-na' : ''}`}
+    role=${ro ? 'progressbar' : toggle ? SLIDER.toggle.role : 'slider'}
+    tabindex=${ro ? nothing : '0'}
     aria-label=${view.label}
-    aria-orientation=${toggle ? nothing : 'vertical'}
+    aria-orientation=${toggle || ro ? nothing : h ? 'horizontal' : 'vertical'}
     aria-valuemin=${toggle ? nothing : 0}
-    aria-valuemax=${toggle ? nothing : 100}
+    aria-valuemax=${toggle ? nothing : Math.round(max)}
     aria-valuenow=${valueNow ?? nothing}
     aria-valuetext=${valueText ?? nothing}
     aria-checked=${toggle ? String(on) : nothing}
-    aria-disabled=${available ? 'false' : 'true'}
-    style=${styleMap({ height: `${height}px` })}
-    @pointerdown=${c.onPointerDown}
+    aria-disabled=${ro ? nothing : available ? 'false' : 'true'}
+    style=${styleMap(h ? {} : { height: `${height}px` })}
+    @pointerdown=${ro ? nothing : c.onPointerDown}
     @pointermove=${c.onPointerMove}
     @pointerup=${c.onPointerUp}
     @pointercancel=${c.onPointerUp}
     @lostpointercapture=${c.onPointerUp}
-    @click=${c.onClick}
-    @keydown=${c.onKeyDown}
+    @click=${ro ? nothing : c.onClick}
+    @keydown=${ro ? nothing : c.onKeyDown}
     @keyup=${c.onKeyUp}
     @blur=${c.onBlur}
   >
-    <div class=${classMap({ 'lc-slider-fill': true, still: c.still(view) })} aria-hidden="true" style=${styleMap(fill)}></div>
+    <div class=${classMap({ 'lc-slider-fill': true, tick: h && !!view.ticker, still: c.still(view) })} aria-hidden="true" style=${styleMap(fill)}></div>
   </div>`;
 }

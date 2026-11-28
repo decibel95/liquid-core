@@ -41,6 +41,10 @@ class CoreDevSlider extends LitElement {
     height: { type: Number },
     card: { type: Boolean },
     stops: { attribute: false },
+    orientation: {},
+    max: { type: Number },
+    readOnly: { type: Boolean },
+    ticker: { type: Boolean },
   };
   kind: SliderKind = 'level';
   value = brightnessPercent(180);
@@ -50,6 +54,10 @@ class CoreDevSlider extends LitElement {
   height?: number;
   card = false;
   stops?: readonly string[];
+  orientation?: 'vertical' | 'horizontal';
+  max?: number;
+  readOnly?: boolean;
+  ticker?: boolean;
   private preview?: number;
   slider = new SliderController(this, {
     onPreview: (v) => {
@@ -88,6 +96,8 @@ class CoreDevSlider extends LitElement {
         font-family: ${unsafeCSS(LIQUID_FONT_STACK)};
       }
       .patch { display: inline-block; padding: 24px; border-radius: 40px; }
+      /* A horizontal slider is full width of its container: the 320px card's content width. */
+      .patch.h { display: block; box-sizing: border-box; width: 320px; padding: 22px; }
       .card { width: 320px; padding: 22px; border-radius: 40px; }
       .body { container-type: inline-size; width: 100%; }
       .bodyrow { display: flex; align-items: center; justify-content: space-between; gap: ${SLIDER.row.gap}px; height: ${SLIDER.height}px; }
@@ -104,6 +114,7 @@ class CoreDevSlider extends LitElement {
   ];
 
   private pill() {
+    if (this.orientation === 'horizontal') return this.seek();
     return renderSlider(this.slider, {
       kind: this.kind,
       value: this.preview ?? this.value,
@@ -117,7 +128,29 @@ class CoreDevSlider extends LitElement {
     });
   }
 
+  // The media seek bar as the card will draw it: the neutral, the duration in seconds as max, 5 s arrows,
+  // Page 10 % of the duration (plan 2.11).
+  private seek() {
+    const max = this.max ?? 300;
+    const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`;
+    return renderSlider(this.slider, {
+      kind: 'position',
+      orientation: 'horizontal',
+      value: this.preview ?? this.value,
+      on: true,
+      available: this.available,
+      color: this.color,
+      max,
+      readOnly: this.readOnly,
+      ticker: this.ticker,
+      label: 'Position, Living Room',
+      valueText: (v) => `${clock(v)} of ${clock(max)}`,
+      keyStep: (cur, key) => ({ ArrowRight: cur + 5, ArrowUp: cur + 5, ArrowLeft: cur - 5, ArrowDown: cur - 5, PageUp: cur + max / 10, PageDown: cur - max / 10 })[key],
+    });
+  }
+
   protected override render() {
+    if (this.orientation === 'horizontal') return html`<div class="g-${glass}"><div class="patch h rim">${this.pill()}</div></div>`;
     if (!this.card) return html`<div class="g-${glass}"><div class="patch rim">${this.pill()}</div></div>`;
     const shown = this.preview ?? this.value;
     const on = this.preview !== undefined ? this.preview > 0 : this.on;
@@ -150,3 +183,12 @@ document.querySelector('#states .row')!.append(
   make({ kind: 'position', value: 14, color: SPECTRUM.toned[glass].kelvin[1], stops: SPECTRUM.toned[glass].kelvin }),
   make({ height: 120 }),
 );
+// Horizontal (P3-TOK-5): seek at 0:45 of 5:00, a ticking one (1 s tick, one second ahead, GD3), unavailable.
+const seek = (props: Partial<CoreDevSlider>) => make({ orientation: 'horizontal', color: NEUTRAL, max: 300, value: 45, ...props });
+const ticking = seek({ id: 'ticking', ticker: true });
+setInterval(() => !ticking.readOnly && (ticking.value = (ticking.value + 1) % 300), 1000);
+document.querySelector('#horizontal .row')!.append(seek({ id: 'seek' }), ticking, seek({ value: 200, available: false }));
+// Read-only (P3-CHO-3): the buffering progressbar, and a vertical one.
+document.querySelector('#readonly .row')!.append(seek({ id: 'readonly-seek', readOnly: true }), make({ kind: 'position', value: 30, color: NEUTRAL, readOnly: true }));
+// RTL: the same cells under dir="rtl" (fill from the right, Left increases).
+document.querySelector('#rtl .row')!.append(seek({ id: 'rtl-seek' }), seek({ readOnly: true, value: 200 }), make({ value: brightnessPercent(180) }));

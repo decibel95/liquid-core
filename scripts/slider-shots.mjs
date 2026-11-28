@@ -1,11 +1,13 @@
 // Screenshot the core slider next to the gate 2 approved prototype, at the same size, on dark and light
 // glass, and measure both (pill size, radius, fill colour, track colour, focus ring).
 //
-//   node scripts/slider-shots.mjs --proto <path to lh-proto/index.html> --out <dir>
+//   node scripts/slider-shots.mjs --proto <path to lh-proto/index.html> [--proto04 <path to lh04-proto/index.html>] --out <dir>
 //
 // The prototype lives in the Liquid Home design archive, outside this repo, so its path is an argument.
 // Writes <glass>-pill-{proto,core,pair}.png, <glass>-focus-{proto,core,pair}.png,
-// <glass>-narrow-{proto,core,pair}.png, <glass>-states-core.png and compare.json into --out.
+// <glass>-narrow-{proto,core,pair}.png, <glass>-states-core.png, <glass>-{horizontal,readonly,rtl}-core.png and
+// compare.json into --out. With --proto04 also <glass>-seek-{proto,core,pair}.png: the 0.4 prototype's seek bar
+// (section 2 card, over its cover) next to the core horizontal slider, and their measurements.
 // Pairs are the prototype on the left and core on the right. The prototype's background orbs are hidden
 // so both pills sit on the same glass over the same flat ground (CHO-14 grounds).
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -20,6 +22,7 @@ const arg = (name) => {
   return i > 0 ? process.argv[i + 1] : undefined;
 };
 const PROTO = arg('proto');
+const PROTO04 = arg('proto04');
 const OUT = resolve(arg('out') ?? resolve(ROOT, '.local', 'slider-shots'));
 if (!PROTO) {
   console.error('usage: node scripts/slider-shots.mjs --proto <lh-proto/index.html> [--out <dir>]');
@@ -92,6 +95,37 @@ async function focusRingOf(page, which) {
     const s = getComputedStyle(el);
     return { focusVisible: el.matches(':focus-visible'), outline: `${s.outlineWidth} ${s.outlineStyle} ${s.outlineColor}`, offset: s.outlineOffset };
   });
+}
+
+// The horizontal frame as drawn, and (interactive) its focus ring.
+async function seekOf(page, host, ring) {
+  const out = await page.evaluate((h) => {
+    const el = document.querySelector(h).shadowRoot.querySelector('.lc-slider');
+    const p = getComputedStyle(el);
+    const f = getComputedStyle(el.querySelector('.lc-slider-fill'));
+    return {
+      height: el.getBoundingClientRect().height,
+      radius: p.borderTopLeftRadius,
+      track: p.backgroundColor,
+      edge: `${p.borderTopWidth} ${p.borderTopStyle} ${p.borderTopColor}`,
+      cursor: p.cursor,
+      contain: p.contain,
+      fillColour: f.backgroundColor,
+      fillTransition: `${f.transitionProperty} ${f.transitionDuration} ${f.transitionTimingFunction}`,
+      attrs: ['role', 'tabindex', 'aria-orientation', 'aria-valuemax', 'aria-valuenow', 'aria-valuetext'].map((a) => el.getAttribute(a)),
+    };
+  }, host);
+  if (ring) {
+    const loc = page.locator(`${host} .lc-slider`);
+    await loc.focus();
+    await page.keyboard.press('Shift');
+    out.focusRing = await loc.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { focusVisible: el.matches(':focus-visible'), outline: `${s.outlineWidth} ${s.outlineStyle} ${s.outlineColor}`, offset: s.outlineOffset };
+    });
+    await page.locator('body').click({ position: { x: 1, y: 1 } });
+  }
+  return out;
 }
 
 // Pixel samples and side-by-side pairs, drawn in a blank page's canvas (no image library needed).
@@ -177,6 +211,15 @@ for (const glass of ['dark', 'light']) {
     if (which === 'core') {
       await page.setViewportSize(WIDE);
       shots.states = await page.locator('#states').screenshot();
+      for (const id of ['horizontal', 'readonly', 'rtl']) shots[id] = await page.locator(`#${id}`).screenshot();
+      r.horizontal = await seekOf(page, '#seek', true);
+      r.readOnly = await seekOf(page, '#readonly-seek', false);
+      r.rtl = await page.evaluate(() => {
+        const root = document.getElementById('rtl-seek').shadowRoot;
+        const p = root.querySelector('.lc-slider').getBoundingClientRect();
+        const f = root.querySelector('.lc-slider-fill').getBoundingClientRect();
+        return { fillFromRight: Math.abs(p.right - 1 - f.right) < 1, fillLeftGap: Math.round(f.left - p.left) };
+      });
     }
     shots[which] = { pill, focus, narrow };
     r[which] = { ...m, pixel: { fill: fillPx, track: trackPx }, focusRing: ring, narrowCardWidth: cardWidth, consoleErrors: errors };
@@ -188,6 +231,30 @@ for (const glass of ['dark', 'light']) {
     writeFileSync(resolve(OUT, `${glass}-${kind}-pair.png`), await pair(ctx, shots.proto[kind], shots.core[kind], ground));
   }
   writeFileSync(resolve(OUT, `${glass}-states-core.png`), shots.states);
+  for (const id of ['horizontal', 'readonly', 'rtl']) writeFileSync(resolve(OUT, `${glass}-${id}-core.png`), shots[id]);
+  if (PROTO04) {
+    const page = await ctx.newPage();
+    await page.goto(pathToFileURL(resolve(PROTO04)).href, { waitUntil: 'networkidle' });
+    if (glass === 'light') await page.click('#glass-switch');
+    await page.waitForSelector('#s2c-seek');
+    await page.evaluate(() => document.getElementById('s2c-seek').scrollIntoView({ block: 'center' })); // below the fold, under the sticky bar
+    await page.waitForTimeout(400);
+    const proto = await page.screenshot({ clip: await clipOf(page, '#s2c-seek', PAD) });
+    r.seekProto = await page.evaluate(() => {
+      const el = document.getElementById('s2c-seek');
+      const p = getComputedStyle(el);
+      const f = getComputedStyle(el.querySelector('.fill'));
+      return { height: el.getBoundingClientRect().height, radius: p.borderTopLeftRadius, track: p.backgroundColor, edge: `${p.borderTopWidth} ${p.borderTopStyle} ${p.borderTopColor}`, cursor: p.cursor, fillColour: f.backgroundColor };
+    });
+    await page.close();
+    const { page: core } = await open(ctx, 'core', glass);
+    await core.locator('#seek .lc-slider').scrollIntoViewIfNeeded();
+    const mine = await core.screenshot({ clip: await clipOf(core, '#seek .lc-slider', PAD) });
+    await core.close();
+    writeFileSync(resolve(OUT, `${glass}-seek-proto.png`), proto);
+    writeFileSync(resolve(OUT, `${glass}-seek-core.png`), mine);
+    writeFileSync(resolve(OUT, `${glass}-seek-pair.png`), await pair(ctx, proto, mine, ground));
+  }
   await ctx.close();
 }
 // The fill transition with motion allowed (the shots above run under reduced motion, where both are none).
@@ -214,6 +281,10 @@ for (const [glass, r] of Object.entries(report.glass)) {
   console.log(`  narrow card     proto ${r.proto.narrowCardWidth}px, core ${r.core.narrowCardWidth}px`);
   console.log(`  aria            proto ${JSON.stringify(r.proto.aria)}\n                  core  ${JSON.stringify(r.core.aria)}`);
   console.log(`  console errors  proto ${r.proto.consoleErrors.length}, core ${r.core.consoleErrors.length}`);
+  console.log(`  horizontal      ${JSON.stringify(r.horizontal)}`);
+  console.log(`  read-only       ${JSON.stringify(r.readOnly)}`);
+  console.log(`  rtl             ${JSON.stringify(r.rtl)}`);
+  if (r.seekProto) console.log(`  0.4 proto seek  ${JSON.stringify(r.seekProto)}`);
 }
 console.log(`\nfill transition, motion allowed: proto ${report.motionAllowed.proto}, core ${report.motionAllowed.core}`);
 console.log(`\nwritten to ${OUT}`);

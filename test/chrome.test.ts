@@ -1,11 +1,13 @@
+// @vitest-environment happy-dom
 import { describe, expect, it } from 'vitest';
 import fixture from './fixtures/lc-0.11.1-tokens.json';
 import { cssRules } from './helpers/css-rules';
-import { BADGE, CHEVRON, CLUSTER, CLUSTER_ICON, DIAL, TILE, badgeChrome, clusterChrome, clusterRoomLayout, clusterStyles, dialChrome, tileChrome } from '../src/chrome';
+import { BADGE, CHEVRON, CLUSTER, CLUSTER_ICON, DIAL, MENU, MENU_CHECK, TILE, badgeChrome, clusterChrome, clusterRoomLayout, clusterStyles, dialChrome, menuStyles, tileChrome } from '../src/chrome';
+import { glassTokens } from '../src/glass-styles';
 import { LIQUID_FONT_STACK } from '../src/font';
 import { ICONS } from '../src/icons';
 import { TINT } from '../src/palette';
-import { DISABLED_OPACITY, PILL_MODES, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from '../src/tokens';
+import { DISABLED_OPACITY, FOCUS, PILL_MODES, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from '../src/tokens';
 
 // Every rule core ships must be the same rule, with the same declarations, in Liquid Climate 0.11.1 (373b340).
 const sheets = { dial: dialChrome, tile: tileChrome, badge: badgeChrome, cluster: clusterChrome } as const;
@@ -129,5 +131,107 @@ describe('THEME_VARS (plan 4.1, D-3)', () => {
     const all = [dialChrome, tileChrome, badgeChrome, clusterChrome].map((c) => c.cssText).join('\n');
     expect(all).toContain(`var(${THEME_VARS.radius}, `);
     expect(all).toContain(`var(${THEME_VARS.blur}, `);
+  });
+});
+
+describe('menuStyles (P3-CHO-11): the Liquid Climate menu rows', () => {
+  const core = cssRules(menuStyles.cssText);
+  const lc = cssRules(fixture.chrome.menu);
+  // Core selector to the Liquid Climate selector: the selected pill also covers menuitemradio rows (not switch rows).
+  const SELECTED = ".mitem:is([role='radio'], [role='menuitemradio'])[aria-checked='true']";
+  const LC_KEY: Record<string, string> = { [SELECTED]: ".mitem[role='radio'][aria-checked='true']" };
+  // Declarations that differ on purpose: the panel spacing belongs to the card, the check sizes itself in CSS, and a row
+  // that is not a button stays inside the panel.
+  const DROPPED: Record<string, string[]> = { '.mpanel': ['margin-bottom: 12px'] };
+  const ADDED: Record<string, string[]> = { '.mcheck': [`width: ${MENU.check.size}px`, `height: ${MENU.check.size}px`], '.mitem': ['box-sizing: border-box'] };
+
+  it('has the menu row selectors, in order', () => {
+    expect([...core.keys()]).toEqual([
+      '.mpanel', '.mgroup', '.mhead', '.mitem', ".mitem:hover:not([aria-disabled='true'])", ".mitem[aria-disabled='true']",
+      SELECTED, '.mlabel', '.mcheck', ".mitem[aria-checked='true'] .mcheck", '.mitem:focus-visible',
+    ]);
+  });
+
+  it('every rule equals the Liquid Climate rule, apart from the documented differences', () => {
+    for (const [key, list] of core) {
+      const lcKey = LC_KEY[key] ?? key;
+      expect(lc.has(lcKey), `${key} is not in the Liquid Climate menu`).toBe(true);
+      const expected = lc.get(lcKey)!.filter((d) => !(DROPPED[key] ?? []).includes(d));
+      const added = ADDED[key] ?? [];
+      expect(list.filter((d) => !added.includes(d)), key).toEqual(expected);
+      for (const d of added) expect(list, key).toContain(d);
+    }
+  });
+
+  it('the selected pill outranks the hover rule, so the selected row keeps its pill under the pointer', () => {
+    // Selector specificity [ids, classes + attributes + pseudo-classes, elements]; :is() and :not() count their most
+    // specific argument. Enough for the selectors of this sheet.
+    const spec = (sel: string): number[] => {
+      const out = [0, 0, 0];
+      const add = (v: number[]) => v.forEach((n, i) => (out[i] += n));
+      let rest = sel.replace(/:(is|not)\(([^()]*)\)/g, (_m, _f, args: string) => {
+        add(args.split(',').map((a) => spec(a.trim())).reduce((a, b) => (a.join() >= b.join() ? a : b)));
+        return '';
+      });
+      rest = rest.replace(/\[[^\]]*\]/g, () => (out[1]++, ''));
+      out[0] += (rest.match(/#[\w-]+/g) ?? []).length;
+      out[1] += (rest.match(/\.[\w-]+|:[\w-]+/g) ?? []).length;
+      out[2] += (rest.match(/(^|[\s>+~])[a-z][\w-]*/gi) ?? []).length;
+      return out;
+    };
+    const cmp = (a: number[], b: number[]) => a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+    const hover = ".mitem:hover:not([aria-disabled='true'])";
+    expect(spec(hover)).toEqual([0, 3, 0]);
+    expect(spec(SELECTED)).toEqual([0, 3, 0]);
+    expect(spec(".mitem[aria-checked='true']")).toEqual([0, 2, 0]);
+    expect(cmp(spec(SELECTED), spec(hover))).toBeGreaterThanOrEqual(0);
+    // Equal specificity: the selected rule must come after the hover rule.
+    const keys = [...core.keys()];
+    expect(keys.indexOf(SELECTED)).toBeGreaterThan(keys.indexOf(hover));
+    expect(core.get(SELECTED)).toEqual(['background: var(--lc-menu-pill-on)', 'box-shadow: inset 0 0 0 1px var(--lc-btn-on-edge)']);
+  });
+
+  it('the pill covers radio and menuitemradio rows, not switch rows', () => {
+    const el = document.createElement('div');
+    el.className = 'mitem';
+    el.setAttribute('aria-checked', 'true');
+    for (const [role, hit] of [['radio', true], ['menuitemradio', true], ['switch', false], ['menuitemcheckbox', false]] as const) {
+      el.setAttribute('role', role);
+      expect(el.matches(SELECTED), role).toBe(hit);
+    }
+  });
+
+  it('MENU is what the Liquid Climate menu draws', () => {
+    expect(lc.get('.mpanel')).toEqual(expect.arrayContaining([`border-radius: ${MENU.panel.radius}px`, `padding: ${MENU.panel.padding}px`, `gap: ${MENU.panel.gap}px`]));
+    expect(lc.get('.mhead')).toEqual(expect.arrayContaining([`font-size: ${MENU.head.size}px`, `font-weight: ${MENU.head.weight}`]));
+    expect(lc.get('.mitem')).toEqual(expect.arrayContaining([`min-height: ${MENU.row.height}px`, `border-radius: ${MENU.row.radius}px`, `font-size: ${MENU.row.size}px`]));
+    expect(lc.get('.mgroup')).toContain(`gap: ${MENU.row.gap}px`);
+    expect(lc.get('.mcheck')).toContain(`stroke-width: ${MENU.check.stroke}`);
+    expect(MENU).toEqual({
+      panel: { radius: 16, padding: 6, gap: 6 },
+      head: { size: 12, weight: 600 },
+      row: { height: 44, radius: 12, gap: 2, size: 13 },
+      check: { size: 16, stroke: 2.4 },
+    });
+  });
+
+  it('MENU_CHECK is the Liquid Climate check path and not an ICONS entry', () => {
+    expect(MENU_CHECK).toBe(fixture.menuCheck);
+    expect(MENU_CHECK).toBe('M5 12.5l4.5 4.5L19 7.5');
+    expect(Object.values(ICONS)).not.toContain(MENU_CHECK);
+  });
+
+  it('the focus ring is the Liquid Climate menu ring: FOCUS width and colour, inside the row', () => {
+    const ring = fixture.focusRing.find((r) => r.file === 'src/ui/menu.ts')!;
+    expect(core.get('.mitem:focus-visible')).toEqual([`outline: ${ring.outline}`, `outline-offset: ${ring.offset}`]);
+    expect(ring).toMatchObject({ outline: `${FOCUS.width}px solid ${FOCUS.color}`, offset: `-${FOCUS.width}px` });
+  });
+
+  it('has no colour literal: every colour is a glass token that glassTokens defines', () => {
+    const text = menuStyles.cssText;
+    expect(text.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/g)).toBeNull();
+    const vars = [...new Set([...text.matchAll(/var\((--[a-z0-9-]+)\)/g)].map((m) => m[1]))];
+    expect(vars.sort()).toEqual(['--lc-bright', '--lc-btn-edge', '--lc-btn-on-edge', '--lc-fg', '--lc-menu-head', '--lc-menu-hover', '--lc-menu-panel', '--lc-menu-pill-on']);
+    for (const v of vars) expect(glassTokens.cssText, v).toContain(`${v}:`);
   });
 });

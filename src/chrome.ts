@@ -1,7 +1,7 @@
 import { css, unsafeCSS } from 'lit';
 import { LIQUID_FONT_STACK } from './font';
 import { ROOM_FILL } from './glass';
-import { DISABLED_OPACITY, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from './tokens';
+import { DISABLED_OPACITY, FOCUS, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from './tokens';
 
 /**
  * Card chrome copied from Liquid Climate 0.11.1 (commit 373b340): the generic rules of the dial card, the tile, the
@@ -12,7 +12,7 @@ import { DISABLED_OPACITY, THEME_VARS, UNAVAILABLE_POWER_OPACITY } from './token
  * difference is the font stack: core puts its own 'Liquid Inter' face (font.ts) before Liquid Climate's stack.
  *
  * The named values below are interpolated into the stylesheets; `src/...:N` is the Liquid Climate source line.
- * Products add glassTokens and focusRing next to a chrome stylesheet; the chrome itself has no focus rule.
+ * Products add glassTokens and focusRing next to a chrome stylesheet; the chrome itself has no focus rule, except menuStyles.
  */
 
 /** The dial-family card (src/cards/dial/styles.ts). */
@@ -119,6 +119,21 @@ export const CLUSTER_ICON = {
 
 /** The disclosure chevron of the cluster strip (liquid-climate-cluster.ts:28). Kept out of ICONS on purpose. */
 export const CHEVRON = 'M9 6l6 6-6 6';
+
+/** The check of the selected menu row (src/ui/menu.ts:123 in Liquid Climate 0.11.1). Kept out of ICONS on purpose, as CHEVRON. */
+export const MENU_CHECK = 'M5 12.5l4.5 4.5L19 7.5';
+
+/** The inline menu of the Liquid Climate sheet (src/ui/menu.ts; line numbers at 0.11.1, the rules are the same in 0.13.1). */
+export const MENU = {
+  /** .mpanel, menu.ts:335, 333, 332. */
+  panel: { radius: 16, padding: 6, gap: 6 },
+  /** .mhead, menu.ts:359 to 360. */
+  head: { size: 12, weight: 600 },
+  /** .mitem min-height, radius and font size, menu.ts:416, 419, 422; gap between rows, .mgroup menu.ts:342. */
+  row: { height: 44, radius: 12, gap: 2, size: 13 },
+  /** .mcheck svg width and height, menu.ts:123; stroke width, menu.ts:466. */
+  check: { size: 16, stroke: 2.4 },
+} as const;
 
 const RADIUS = unsafeCSS(THEME_VARS.radius);
 const BLUR = unsafeCSS(THEME_VARS.blur);
@@ -902,3 +917,95 @@ export const clusterChrome = css`
 
 /** The name the room card builders use for the cluster chrome. */
 export const clusterStyles = clusterChrome;
+
+/**
+ * Menu rows: the inline choice list of the Liquid Climate sheet menu (src/ui/menu.ts), for a list drawn inside the
+ * card's own glass. `.mpanel` holds an optional `.mhead` and a `.mgroup` of `.mitem` rows (usually buttons); each row
+ * has a `.mlabel` (two lines, then an ellipsis) and an `svg.mcheck` with the MENU_CHECK path, shown only on the row
+ * with `aria-checked='true'`. Every rule is the Liquid Climate rule with the same declarations, with four differences:
+ * the selected pill is `.mitem:is([role='radio'], [role='menuitemradio'])[aria-checked='true']` (Liquid Climate has
+ * `[role='radio']` only; a switch row, which also carries aria-checked, still gets no pill, and the rule is as specific
+ * as the hover rule and comes after it, so the selected row keeps its pill under the pointer), `.mpanel` has no `margin-bottom` (the spacing
+ * around the panel belongs to the card), `.mcheck` sets its own size (Liquid Climate sets it on the svg element), and
+ * `.mitem` has `box-sizing: border-box`, so a row that is not a button does not spill out of the panel. Unlike the
+ * other chrome this sheet has a focus rule, the one of the Liquid Climate menu (menu.ts:529): the ring sits inside the
+ * row (offset minus its width), so rows stacked 2px apart do not draw over each other and the rows look like the
+ * shipped climate menu.
+ */
+export const menuStyles = css`
+  .mpanel {
+    display: flex;
+    flex-direction: column;
+    gap: ${MENU.panel.gap}px;
+    padding: ${MENU.panel.padding}px;
+    border-radius: ${MENU.panel.radius}px;
+    background: var(--lc-menu-panel);
+    box-shadow: inset 0 0 0 1px var(--lc-btn-edge);
+  }
+  .mgroup {
+    display: flex;
+    flex-direction: column;
+    gap: ${MENU.row.gap}px;
+  }
+  .mhead {
+    padding: 6px 10px 2px;
+    font-size: ${MENU.head.size}px;
+    font-weight: ${MENU.head.weight};
+    color: var(--lc-menu-head);
+  }
+  .mitem {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: ${MENU.row.height}px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: ${MENU.row.radius}px;
+    background: none;
+    font: inherit;
+    font-size: ${MENU.row.size}px;
+    color: var(--lc-fg);
+    text-align: left;
+    cursor: pointer;
+  }
+  .mitem:hover:not([aria-disabled='true']) {
+    background: var(--lc-menu-hover);
+  }
+  .mitem[aria-disabled='true'] {
+    cursor: default;
+  }
+  .mitem:is([role='radio'], [role='menuitemradio'])[aria-checked='true'] {
+    background: var(--lc-menu-pill-on);
+    box-shadow: inset 0 0 0 1px var(--lc-btn-on-edge);
+  }
+  .mlabel {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+  .mcheck {
+    flex: none;
+    width: ${MENU.check.size}px;
+    height: ${MENU.check.size}px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: ${MENU.check.stroke};
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    visibility: hidden;
+  }
+  .mitem[aria-checked='true'] .mcheck {
+    visibility: visible;
+  }
+  .mitem:focus-visible {
+    outline: ${FOCUS.width}px solid ${unsafeCSS(FOCUS.color)};
+    outline-offset: -${FOCUS.width}px;
+  }
+`;
